@@ -1,9 +1,10 @@
+use log::trace;
 use std::env;
-use std::io;
 #[cfg(target_family = "unix")]
 use std::fs;
 #[cfg(target_family = "unix")]
 use std::fs::Permissions;
+use std::io;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
@@ -36,17 +37,21 @@ fn do_execute(target: &Path, args: &[String]) -> io::Result<i32> {
         .stderr(Stdio::inherit())
         .spawn()?
         .wait()?
-        .code().unwrap_or(1))
+        .code()
+        .unwrap_or(1))
 }
 
 #[cfg(target_family = "windows")]
 fn is_script(target: &Path) -> bool {
     const SCRIPT_EXTENSIONS: &[&str] = &["bat", "cmd"];
     SCRIPT_EXTENSIONS.contains(
-        &target.extension()
+        &target
+            .extension()
             .unwrap_or_default()
             .to_string_lossy()
-            .to_lowercase().as_str())
+            .to_lowercase()
+            .as_str(),
+    )
 }
 
 #[cfg(target_family = "windows")]
@@ -66,7 +71,8 @@ fn do_execute(target: &Path, args: &[String]) -> io::Result<i32> {
             .stderr(Stdio::inherit())
             .spawn()?
             .wait()?
-            .code().unwrap_or(1))
+            .code()
+            .unwrap_or(1))
     } else {
         Ok(Command::new(target)
             .args(args)
@@ -75,6 +81,7 @@ fn do_execute(target: &Path, args: &[String]) -> io::Result<i32> {
             .stderr(Stdio::inherit())
             .spawn()?
             .wait()?
-            .code().unwrap_or(1))
+            .code()
+            .unwrap_or(1))
     }
 }

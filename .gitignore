@@ -11,3 +11,5 @@ Cargo.lock
 
 # Intellij
 .idea/
+/*.iml
+/.project

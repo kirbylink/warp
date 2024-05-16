@@ -1,2 +1,2 @@
 [workspace]
-members = ["warp-runner", "warp-packer"]
+members = ["warp-args", "warp-runner", "warp-packer"]

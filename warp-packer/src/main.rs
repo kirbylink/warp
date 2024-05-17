@@ -22,7 +22,11 @@ lazy_static! {
         let mut m = HashMap::new();
         m.insert(
             "linux-x64",
-            include_bytes!("../../target/x86_64-unknown-linux-musl/release/warp-runner").as_slice(),
+            include_bytes!("../../target/x86_64-unknown-linux-gnu/release/warp-runner").as_slice(),
+        );
+        m.insert(
+            "linux-aarch64",
+            include_bytes!("../../target/aarch64-unknown-linux-gnu/release/warp-runner").as_slice(),
         );
         m.insert(
             "macos-x64",

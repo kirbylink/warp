@@ -1,0 +1,24 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+### Changed
+- Changed the default invocation to `warp-packer pack <argument1> <argument2> ...`.
+
+For more details, see the [README](./README.md#changes-in-v100).
+
+### Added
+- Support for native execution on aarch64-linux platforms, e.g., Raspberry Pi 4.
+- New options for `warp-packer`.
+- `BUILD.md` with instructions on how to compile warp-packer.
+- `INSTALL.md` with instructions on how to run the application on Linux, macOS, and Windows systems.
+
+## [1.0.0] - 2024-04-01
+### Changed
+- t.b.c.
+
+[unreleased]: https://git.phoenix.ipv64.de/David/java-e-liquid-calculator.git/compare/master...HEAD

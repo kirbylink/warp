@@ -85,7 +85,7 @@ dgiagio@X1:~/Devel$ chmod +x warp-packer
 **Create your self-contained application**
 
 ```sh
-dgiagio@X1:~/Devel$ ./warp-packer --arch linux-x64 --input_dir myapp --exec launch --output myapp.bin
+dgiagio@X1:~/Devel$ ./warp-packer pack --arch linux-x64 --input-dir myapp --exec launch --output myapp.bin
 dgiagio@X1:~/Devel$ chmod +x myapp.bin
 ```
 
@@ -170,7 +170,7 @@ Diegos-iMac:Devel dgiagio$ chmod +x warp-packer
 **Create your self-contained application**
 
 ```sh
-Diegos-iMac:Devel dgiagio$ ./warp-packer --arch macos-x64 --input_dir myapp --exec launch --output myapp.bin
+Diegos-iMac:Devel dgiagio$ ./warp-packer pack --arch macos-x64 --input-dir myapp --exec launch --output myapp.bin
 Diegos-iMac:Devel dgiagio$ chmod +x myapp.bin
 ```
 
@@ -250,7 +250,7 @@ PS C:\Users\Diego\Devel> [Net.ServicePointManager]::SecurityProtocol = "tls12, t
 **Create your self-contained application**
 
 ```powershell
-PS C:\Users\Diego\Devel> .\warp-packer --arch windows-x64 --input_dir .\myapp\ --exec launch.cmd --output myapp.exe
+PS C:\Users\Diego\Devel> .\warp-packer --arch windows-x64 --input-dir .\myapp\ --exec launch.cmd --output myapp.exe
 ```
 
 **Run your self-contained application**
@@ -299,7 +299,7 @@ dgiagio@X1:~/Devel/myapp$ chmod +x warp-packer
 **Create your self-contained application**
 
 ```sh
-dgiagio@X1:~/Devel/myapp$ ./warp-packer --arch linux-x64 --input_dir bin/Release/netcoreapp2.1/linux-x64/publish --exec myapp --output myapp
+dgiagio@X1:~/Devel/myapp$ ./warp-packer pack --arch linux-x64 --input-dir bin/Release/netcoreapp2.1/linux-x64/publish --exec myapp --output myapp
 dgiagio@X1:~/Devel/myapp$ chmod +x myapp
 ```
 
@@ -351,7 +351,7 @@ Diegos-iMac:myapp dgiagio$ chmod +x warp-packer
 **Create your self-contained application**
 
 ```sh
-Diegos-iMac:myapp dgiagio$ ./warp-packer --arch macos-x64 --input_dir bin/Release/netcoreapp2.1/osx-x64/publish --exec myapp --output myapp
+Diegos-iMac:myapp dgiagio$ ./warp-packer pack --arch macos-x64 --input-dir bin/Release/netcoreapp2.1/osx-x64/publish --exec myapp --output myapp
 Diegos-iMac:myapp dgiagio$ chmod +x myapp
 ```
 
@@ -402,7 +402,7 @@ PS C:\Users\Diego\Devel\myapp> [Net.ServicePointManager]::SecurityProtocol = "tl
 **Create your self-contained application**
 
 ```powershell
-PS C:\Users\Diego\Devel\myapp> .\warp-packer --arch windows-x64 --input_dir bin/Release/netcoreapp2.1/win10-x64/publish --exec myapp.exe --output myapp.exe
+PS C:\Users\Diego\Devel\myapp> .\warp-packer --arch windows-x64 --input-dir bin/Release/netcoreapp2.1/win10-x64/publish --exec myapp.exe --output myapp.exe
 ```
 
 **Run your self-contained application**
@@ -456,18 +456,18 @@ Hello, world.
 
 **Download a JRE**
 
-There are prebuilt JREs over on [AdoptOpenJDK](https://adoptopenjdk.net). 
+There are prebuilt JREs over on [AdoptOpenJDK](https://adoptium.net). 
 
 Here we use JRE 8:
 
 ```
-wget -N https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u202-b08/OpenJDK8U-jre_x64_linux_hotspot_8u202b08.tar.gz
+wget -N https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u412-b08/OpenJDK8U-jre_x64_linux_hotspot_8u412b08.tar.gz
 ```
 
 Unpack it: 
 
 ```
-tar -xvf OpenJDK8U-jre_x64_linux_hotspot_8u202b08.tar.gz
+tar -xvf OpenJDK8U-jre_x64_linux_hotspot_8u412b08.tar.gz
 ```
 
 **Create a bundle**
@@ -476,7 +476,7 @@ We need to create a folder containing: our compiled code, the JRE and a launch s
 
 ```
 mkdir bundle
-cp -r ./jdk8u202-b08-jre ./bundle/jre
+cp -r ./jdk8u412-b08-jre ./bundle/jre
 cp app.jar ./bundle/app.jar
 touch bundle/run.sh
 chmod +x ./bundle/run.sh 
@@ -513,7 +513,7 @@ $ chmod +x ./warp-packer
 **Create your self-contained application**
 
 ```bash
-$ ./warp-packer --arch linux-x64 --input_dir bundle --exec run.sh --output app.bin
+$ ./warp-packer pack --arch linux-x64 --input-dir bundle --exec run.sh --output app.bin
 $ chmod +x app.bin
 ```
 
@@ -542,7 +542,7 @@ The performance characteristics of the generated self-contained application is r
 
 ### Packages cache location
 - Linux: `$HOME/.local/share/warp/packages`
-- macOS: `$HOME/Library/Application Support/warp/packges`
+- macOS: `$HOME/Library/Application Support/warp/packages`
 - Windows: `%LOCALAPPDATA%\warp\packages`
 
 ### Runners cache location

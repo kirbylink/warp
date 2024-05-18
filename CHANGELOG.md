@@ -21,10 +21,10 @@ For more details, see the [README](./README.md#changes-in-v100).
 ### Changed
 - t.b.c.
 
-## [0.3.0] - 2018-10-30
+## [0.1.0 - 0.3.0] - 2018-10-30
 ### Changed
 - For changes see origin repository: https://github.com/dgiagio/warp/releases
 
 [unreleased]: https://git.phoenix.ipv64.de/public/warp/compare/master...HEAD
 [1.0.0]: https://git.phoenix.ipv64.de/public/warp/compare/0.3.0...1.0.0
-[0.3.0]: https://github.com/dgiagio/warp/releases/tag/v0.3.0
+[0.1.0 - 0.3.0]: https://github.com/dgiagio/warp/releases

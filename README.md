@@ -17,6 +17,7 @@ Warp is written in Rust and is supported on Linux, Windows and macOS.
     + [Performance](#performance)
     + [Packages cache location](#packages-cache-location)
     + [Runners cache location](#runners-cache-location)
+  * [Changes in v1.0.0](#changes-in-v100)
   * [Authors](#authors)
   * [License](#license)
 
@@ -85,7 +86,7 @@ dgiagio@X1:~/Devel$ chmod +x warp-packer
 **Create your self-contained application**
 
 ```sh
-dgiagio@X1:~/Devel$ ./warp-packer --arch linux-x64 --input_dir myapp --exec launch --output myapp.bin
+dgiagio@X1:~/Devel$ ./warp-packer pack --arch linux-x64 --input-dir myapp --exec launch --output myapp.bin
 dgiagio@X1:~/Devel$ chmod +x myapp.bin
 ```
 
@@ -170,7 +171,7 @@ Diegos-iMac:Devel dgiagio$ chmod +x warp-packer
 **Create your self-contained application**
 
 ```sh
-Diegos-iMac:Devel dgiagio$ ./warp-packer --arch macos-x64 --input_dir myapp --exec launch --output myapp.bin
+Diegos-iMac:Devel dgiagio$ ./warp-packer pack --arch macos-x64 --input-dir myapp --exec launch --output myapp.bin
 Diegos-iMac:Devel dgiagio$ chmod +x myapp.bin
 ```
 
@@ -250,7 +251,7 @@ PS C:\Users\Diego\Devel> [Net.ServicePointManager]::SecurityProtocol = "tls12, t
 **Create your self-contained application**
 
 ```powershell
-PS C:\Users\Diego\Devel> .\warp-packer --arch windows-x64 --input_dir .\myapp\ --exec launch.cmd --output myapp.exe
+PS C:\Users\Diego\Devel> .\warp-packer --arch windows-x64 --input-dir .\myapp\ --exec launch.cmd --output myapp.exe
 ```
 
 **Run your self-contained application**
@@ -299,7 +300,7 @@ dgiagio@X1:~/Devel/myapp$ chmod +x warp-packer
 **Create your self-contained application**
 
 ```sh
-dgiagio@X1:~/Devel/myapp$ ./warp-packer --arch linux-x64 --input_dir bin/Release/netcoreapp2.1/linux-x64/publish --exec myapp --output myapp
+dgiagio@X1:~/Devel/myapp$ ./warp-packer pack --arch linux-x64 --input-dir bin/Release/netcoreapp2.1/linux-x64/publish --exec myapp --output myapp
 dgiagio@X1:~/Devel/myapp$ chmod +x myapp
 ```
 
@@ -351,7 +352,7 @@ Diegos-iMac:myapp dgiagio$ chmod +x warp-packer
 **Create your self-contained application**
 
 ```sh
-Diegos-iMac:myapp dgiagio$ ./warp-packer --arch macos-x64 --input_dir bin/Release/netcoreapp2.1/osx-x64/publish --exec myapp --output myapp
+Diegos-iMac:myapp dgiagio$ ./warp-packer pack --arch macos-x64 --input-dir bin/Release/netcoreapp2.1/osx-x64/publish --exec myapp --output myapp
 Diegos-iMac:myapp dgiagio$ chmod +x myapp
 ```
 
@@ -402,7 +403,7 @@ PS C:\Users\Diego\Devel\myapp> [Net.ServicePointManager]::SecurityProtocol = "tl
 **Create your self-contained application**
 
 ```powershell
-PS C:\Users\Diego\Devel\myapp> .\warp-packer --arch windows-x64 --input_dir bin/Release/netcoreapp2.1/win10-x64/publish --exec myapp.exe --output myapp.exe
+PS C:\Users\Diego\Devel\myapp> .\warp-packer --arch windows-x64 --input-dir bin/Release/netcoreapp2.1/win10-x64/publish --exec myapp.exe --output myapp.exe
 ```
 
 **Run your self-contained application**
@@ -456,18 +457,18 @@ Hello, world.
 
 **Download a JRE**
 
-There are prebuilt JREs over on [AdoptOpenJDK](https://adoptopenjdk.net). 
+There are prebuilt JREs over on [AdoptOpenJDK](https://adoptium.net). 
 
 Here we use JRE 8:
 
 ```
-wget -N https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u202-b08/OpenJDK8U-jre_x64_linux_hotspot_8u202b08.tar.gz
+wget -N https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u412-b08/OpenJDK8U-jre_x64_linux_hotspot_8u412b08.tar.gz
 ```
 
 Unpack it: 
 
 ```
-tar -xvf OpenJDK8U-jre_x64_linux_hotspot_8u202b08.tar.gz
+tar -xvf OpenJDK8U-jre_x64_linux_hotspot_8u412b08.tar.gz
 ```
 
 **Create a bundle**
@@ -476,7 +477,7 @@ We need to create a folder containing: our compiled code, the JRE and a launch s
 
 ```
 mkdir bundle
-cp -r ./jdk8u202-b08-jre ./bundle/jre
+cp -r ./jdk8u412-b08-jre ./bundle/jre
 cp app.jar ./bundle/app.jar
 touch bundle/run.sh
 chmod +x ./bundle/run.sh 
@@ -513,7 +514,7 @@ $ chmod +x ./warp-packer
 **Create your self-contained application**
 
 ```bash
-$ ./warp-packer --arch linux-x64 --input_dir bundle --exec run.sh --output app.bin
+$ ./warp-packer pack --arch linux-x64 --input-dir bundle --exec run.sh --output app.bin
 $ chmod +x app.bin
 ```
 
@@ -542,13 +543,46 @@ The performance characteristics of the generated self-contained application is r
 
 ### Packages cache location
 - Linux: `$HOME/.local/share/warp/packages`
-- macOS: `$HOME/Library/Application Support/warp/packges`
+- macOS: `$HOME/Library/Application Support/warp/packages`
 - Windows: `%LOCALAPPDATA%\warp\packages`
 
 ### Runners cache location
 - Linux: `$HOME/.local/share/warp/runners`
 - macOS: `$HOME/Library/Application Support/warp/runners`
 - Windows: `%LOCALAPPDATA%\warp\runners`
+
+## Changes in v1.0.0
+
+Version 1.0.0 introduces several breaking changes and new features, implemented via a cherry-pick from the [forked project](https://github.com/Reisz/warp). You can see the detailed differences in the [comparison](https://github.com/dgiagio/warp/compare/master...Reisz:warp:master).
+
+### Breaking Changes
+Until version 0.3.0, the default invocation of the program was:
+```sh
+warp-packer <argument1> <argument2> ...
+```
+From version 1.0.0 onwards, the default invocation has changed to:
+```sh
+warp-packer pack <argument1> <argument2> ...
+```
+
+### New Options in 1.0.0
+Version 1.0.0 introduces the following new options:
+
+```sh
+  -i, --input-dir <INPUT_DIR>  Sets the input directory containing the application and dependencies
+  -q, --unique-id              Generate a unique ID for each package build
+  -p, --prefix <PREFIX>        Use a prefix instead of the single-file executable name
+  -n, --no-clean               When using unique-id, do not clean obsolete versions with the same prefix from the cache
+```
+
+### Detailed Explanation of New Options
+- **`-i, --input-dir <INPUT_DIR>`**: In previous versions, this option was specified as `--input_dir`. It sets the directory containing the application and its dependencies.
+  
+- **`-q, --unique-id`**: Instead of using a static folder name for the extracted application, a UUID will be used as the folder name. This is useful for shipping or testing different versions of your application without overwriting the old one. For example, `<cache_location>/warp/packages/<jar_name>/<unique_uuid>`.
+
+- **`-p, --prefix <PREFIX>`**: This option allows you to use a specified prefix as the folder name in the cache location where the application will be extracted. For example, `<cache_location>/warp/packages/<PREFIX>/`.
+
+- **`-n, --no-clean`**: By default, the folder with the autogenerated UUID and its content will be replaced with the new extracted files. If this option is set, the executable application will not delete the old extracted files in the cache location.
 
 ## Authors
 - Diego Giagio `<diego@giagio.com>`

@@ -17,7 +17,7 @@ Warp is written in Rust and is supported on Linux, Windows and macOS.
     + [Performance](#performance)
     + [Packages cache location](#packages-cache-location)
     + [Runners cache location](#runners-cache-location)
-  * [Changes in v1.0.0](#changes-in-v1.0.0)
+  * [Changes in v1.0.0](#changes-in-v100)
   * [Authors](#authors)
   * [License](#license)
 

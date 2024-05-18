@@ -1,2 +1,3 @@
 [workspace]
 members = ["warp-args", "warp-runner", "warp-packer"]
+resolver = "2"

@@ -17,9 +17,7 @@ For more details, see the [README](./README.md#changes-in-v100).
 - `BUILD.md` with instructions on how to compile warp-packer.
 - `INSTALL.md` with instructions on how to run the application on Linux, macOS, and Windows systems.
 
-## [1.0.0] - 2024-04-01
-### Changed
-- t.b.c.
+## [1.0.0]
 
 ## [0.1.0 - 0.3.0] - 2018-10-30
 ### Changed

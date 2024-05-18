@@ -19,10 +19,10 @@ For more details, see the [README](./README.md#changes-in-v100).
 - `BUILD.md` with instructions on how to compile warp-packer.
 - `INSTALL.md` with instructions on how to run the application on Linux, macOS, and Windows systems.
 
-## [0.1.0 - 0.3.0] - 2018-10-30
+## [v0.1.0 - v0.3.0] - 2018-10-30
 ### Changed
 - For changes see origin repository: https://github.com/dgiagio/warp/releases
 
 [unreleased]: https://git.phoenix.ipv64.de/public/warp/compare/master...HEAD
-[1.0.0]: https://git.phoenix.ipv64.de/public/warp/compare/0.3.0...1.0.0
-[0.1.0 - 0.3.0]: https://github.com/dgiagio/warp/releases
+[1.0.0]: https://git.phoenix.ipv64.de/public/warp/compare/v0.3.0...1.0.0
+[v0.1.0 - v0.3.0]: https://github.com/dgiagio/warp/releases

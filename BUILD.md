@@ -50,7 +50,7 @@ If a newer version doesn't work, a specific version can be installed with the fo
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.78.0
 ```
 
-For more information see this [GitHub Issue](https://github.com/rust-lang/rustup/issues/2882) and the [official installation instructions](Info: https://rust-lang.github.io/rustup/installation/other.html).
+For more information see this [GitHub Issue](https://github.com/rust-lang/rustup/issues/2882) and the [official installation instructions](https://rust-lang.github.io/rustup/installation/other.html).
 
 After installing, run the following commands to get the necessary targets:
 ```bash

@@ -33,7 +33,7 @@ This repository has been built and tested on Debian 12.5 (Bookworm) on an AMD64 
 #### Required Package List
 
 ```bash
-apt install curl maven clang cmake libssl-dev zlib1g-dev liblzma-dev libbz2-dev gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64-win32
+apt install curl maven clang cmake libssl-dev zlib1g-dev liblzma-dev libbz2-dev gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64-win32 git
 ```
 
 #### Install and Prepare Required Rust Version
@@ -47,10 +47,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 If a newer version doesn't work, a specific version can be installed with the following command:
 ```bash
-$ curl --proto '=https' --tls1.2 -sSf https://sh.rustup.rs/ | sh -s --default-toolchain=1.78.0
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.78.0
 ```
 
-For more information see this [GitHub Issue](https://github.com/rust-lang/rustup/issues/2882).
+For more information see this [GitHub Issue](https://github.com/rust-lang/rustup/issues/2882) and the [official installation instructions](Info: https://rust-lang.github.io/rustup/installation/other.html).
 
 After installing, run the following commands to get the necessary targets:
 ```bash
@@ -85,7 +85,7 @@ Copy or move the SDK into the `<path/to>/osxcross/tarballs/` directory.
 
 Run:
 ```bash
-UNATTENDED=yes OSX_VERSION_MIN=10.12 ./build.sh
+UNATTENDED=yes OSX_VERSION_MIN=10.12 <path/to>/osxcross/build.sh
 ```
 to create the macOS cross toolchain.
 

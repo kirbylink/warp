@@ -17,6 +17,7 @@ Instructions for building this repository on Linux.
         * [Prepare Cross-Compilation for Windows ARM64](#prepare-cross-compilation-for-windows-arm64)
       * [Build the Project](#build-the-project)
       * [Full Build Automation Script (Optional)](#full-build-automation-script-optional)
+  * [Building using GitHub Actions](#building-using-github-actions)
 
 ## Contributing to the Repository
 
@@ -219,3 +220,39 @@ This script installs:
 > You can modify the script to suit your environment. It is designed to work with user privileges (except for `apt`).
 >
 > ℹ️ **Note:** You should only run the script once to set everything up. Afterward, you only need to run `make` in the cloned warp repository to rebuild it. However, the paths to the tools (like `osxcross`, `zig`, or the SDK) still need to be correctly set in your environment (e.g. via `PATH` or `.cargo/config.toml`).
+
+## Building using GitHub Actions
+
+If you prefer not to install all platform-specific dependencies locally, this repository provides a GitHub Actions workflow to automatically build all `warp-runner` and `warp-packer` binaries for major platforms and architectures.
+
+**Workflow file**: [`build.yml`](.github/workflows/build.yml)
+**GitHub Actions Documentation**: [Using workflows in your repository](https://docs.github.com/en/actions/using-workflows)
+
+### How to use
+
+You can trigger a full build of all binaries using GitHub Actions – **without creating a release**:
+
+1. Open the **["Actions" tab](../../actions)** of your repository on GitHub.
+2. Select the **"Build warp-runner and warp-packer"** workflow.
+3. Click the **"Run workflow"** button and choose the desired branch.
+4. Wait for the workflow to complete.
+
+Once finished, you can download all generated binaries from the **Artifacts** section at the bottom of the workflow run.
+
+### Available binaries (naming pattern)
+
+Each platform-specific binary will be named as follows:
+
+* `linux-x64.warp-packer`
+* `linux-arm.warp-packer`
+* `windows-x64.warp-packer.exe`
+* `windows-arm.warp-packer.exe`
+* `macos-x64.warp-packer`
+* `macos-arm.warp-packer`
+
+All files are available as artifacts for **90 days**.
+
+### Notes
+
+* The build uses GitHub-hosted runners including `ubuntu-24.04-arm` and `windows-11-arm`, which are [currently in public preview](https://github.com/actions/runner-images/blob/main/docs/ARM64.md).
+* No release is required – the binaries are available directly from the Actions UI.

@@ -252,7 +252,7 @@ Each platform-specific binary will be named as follows:
 
 All files are available as artifacts for **90 days**.
 
-### Notes
-
-* The build uses GitHub-hosted runners including `ubuntu-24.04-arm` and `windows-11-arm`, which are [currently in public preview](https://github.com/actions/runner-images/blob/main/docs/ARM64.md).
-* No release is required – the binaries are available directly from the Actions UI.
+> ℹ️ **Note:**
+>
+> * The build uses GitHub-hosted runners including `ubuntu-24.04-arm` and `windows-11-arm`, which are [currently in public preview](https://github.com/actions/runner-images/blob/main/docs/ARM64.md).
+> * No release is required – the binaries are available directly from the Actions UI.

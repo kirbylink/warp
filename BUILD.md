@@ -73,9 +73,9 @@ There are several GitHub repositories available that contain different SDK versi
 
 The macOS SDK is integrated into Xcode and Command Line Tools for Xcode. This repository has been built and tested with Command Line Tools for Xcode version 12.5.1 (`Command_Line_Tools_for_Xcode_12.5.1.dmg`).
 
-The resulting Clang and AR tools (e.g. `aarch64-apple-darwin24.4-clang` and `aarch64-apple-darwin24.4-ar`) must be referenced in the `.cargo/config.toml` file accordingly.
+The resulting Clang and AR tools (e.g. `aarch64-apple-darwin20.4-clang` and `aarch64-apple-darwin20.4-ar`) must be referenced in the `.cargo/config.toml` file accordingly.
 
-> ⚠️ **Important:** The version `Command Line Tools for Xcode 12.5.1` must be used exactly as described. Using a different version will change the internal SDK version (e.g. `MacOSX11.3.sdk`) and toolchain prefix (e.g. `aarch64-apple-darwin24.4-clang`), which in turn requires manual adjustments to both the `Makefile` and `.cargo/config.toml`. This setup has been tested and validated only with version 12.5.1.
+> ⚠️ **Important:** The version `Command Line Tools for Xcode 12.5.1` must be used exactly as described. Using a different version will change the internal SDK version (e.g. `MacOSX11.3.sdk`) and toolchain prefix (e.g. `aarch64-apple-darwin20.4-clang`), which in turn requires manual adjustments to both the `Makefile` and `.cargo/config.toml`. This setup has been tested and validated only with version 12.5.1.
 
 ##### Build and Use macOS SDK from Command Line Tools for Xcode
 

@@ -254,5 +254,5 @@ All files are available as artifacts for **90 days**.
 
 > ℹ️ **Note:**
 >
-> * The build uses GitHub-hosted runners including `ubuntu-24.04-arm` and `windows-11-arm`, which are [currently in public preview](https://github.com/actions/runner-images/blob/main/docs/ARM64.md).
+> * The build uses GitHub-hosted runners including `ubuntu-24.04-arm` and `windows-11-arm`, which are currently in public preview. See [here](https://github.blog/changelog/2025-01-16-linux-arm64-hosted-runners-now-available-for-free-in-public-repositories-public-preview/) and [here](https://github.blog/changelog/2025-04-14-windows-arm64-hosted-runners-now-available-in-public-preview/).
 > * No release is required – the binaries are available directly from the Actions UI.

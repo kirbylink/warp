@@ -244,11 +244,11 @@ Once finished, you can download all generated binaries from the **Artifacts** se
 Each platform-specific binary will be named as follows:
 
 * `linux-x64.warp-packer`
-* `linux-arm.warp-packer`
+* `linux-aarch64.warp-packer`
 * `windows-x64.warp-packer.exe`
-* `windows-arm.warp-packer.exe`
+* `windows-aarch64.warp-packer.exe`
 * `macos-x64.warp-packer`
-* `macos-arm.warp-packer`
+* `macos-aarch64.warp-packer`
 
 All files are available as artifacts for **90 days**.
 

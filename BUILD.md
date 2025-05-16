@@ -28,7 +28,7 @@ This repository contains the source code necessary to build warp-packer for diff
 
 ### Linux Development Environment Requirements
 
-This repository has been built and tested on Debian 12.5 (Bookworm) on an AMD64 architecture.
+This repository has been built and tested on Debian 12.10 (Bookworm) on an AMD64 architecture.
 
 #### Required Package List
 
@@ -38,7 +38,7 @@ apt install curl maven clang cmake libssl-dev zlib1g-dev liblzma-dev libbz2-dev 
 
 #### Install and Prepare Required Rust Version
 
-This repository has been built and tested with Rust version 1.78.
+This repository has been built and tested with Rust version 1.86.
 
 To install the newest version, run the following command:
 ```bash
@@ -47,7 +47,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 If a newer version doesn't work, a specific version can be installed with the following command:
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.78.0
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.86.0
 ```
 
 For more information see this [GitHub Issue](https://github.com/rust-lang/rustup/issues/2882) and the [official installation instructions](https://rust-lang.github.io/rustup/installation/other.html).
@@ -61,11 +61,11 @@ rustup target add x86_64-pc-windows-gnu
 
 #### Required macOS SDK
 
-To build warp-packer for the target x86_64-apple-darwin, a macOS SDK is needed. The repository has been built and tested with MacOSX10.12 SDK.
+To build warp-packer for the target x86_64-apple-darwin, a macOS SDK is needed. The repository has been built and tested with MacOSX11.3 SDK.
 There are several GitHub repositories available that contain different SDK versions, but they all seem to miss the header files. So it is recommended to download it from Apple's website.
-The macOS SDK is integrated into Xcode, and this repository has been built and tested with Xcode version 8.3.3.
+The macOS SDK is integrated into Xcode and Command Line Tools for Xcode, and this repository has been built and tested with Command Line Tools for Xcode version 12.5.1 (Command_Line_Tools_for_Xcode_12.5.1.dmg).
 
-##### Build and Use macOS SDK from Xcode
+##### Build and Use macOS SDK from Command Line Tools for Xcode
 
 To build and use the macOS SDK from Xcode, [osxcross](https://github.com/tpoechtrager/osxcross) will be used.
 
@@ -74,18 +74,16 @@ Download osxcross:
 git clone https://github.com/tpoechtrager/osxcross.git
 ```
 
-Extract macOS SDK from Xcode (see [here](https://github.com/tpoechtrager/osxcross?tab=readme-ov-file#packing-the-sdk-on-linux---method-1-xcode--80)):
+Extract macOS SDK from Command Line Tools for Xcode (see [here](https://github.com/tpoechtrager/osxcross?tab=readme-ov-file#on-linux-and-others) "From Xcode Command Line Tools"):
 ```bash
-<path/to>/osxcross/tools/gen_sdk_package_pbzx.sh <path/to>/Xcode_8.3.3.xip
+<path/to>/osxcross/tools/gen_sdk_package_tools_dmg.sh <path/to>/Command_Line_Tools_for_Xcode_12.5.1.dmg
 ```
 
-Hint: This method may require up to 45 GB of free disk space. An SSD is recommended for this method.
-
-Copy or move the SDK into the `<path/to>/osxcross/tarballs/` directory.
+Copy or move the SDKs from `<path/to>/osxcross/` into the `<path/to>/osxcross/tarballs/` directory.
 
 Run:
 ```bash
-UNATTENDED=yes OSX_VERSION_MIN=10.12 <path/to>/osxcross/build.sh
+UNATTENDED=yes OSX_VERSION_MIN=11 SDK_VERSION=11.3 <path/to>/osxcross/build.sh
 ```
 to create the macOS cross toolchain.
 
@@ -108,5 +106,5 @@ The compiled warp-packer files are in the folder:
 ```
 e.g.
 ```bash
-warp/target/aarch64-unknown-linux-gnu/release/warp-packer
+<path/to>/warp/target/aarch64-unknown-linux-gnu/release/warp-packer
 ```

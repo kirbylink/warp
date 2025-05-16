@@ -11,19 +11,19 @@ OSXCROSS_DIR="$BASE_DIR/osxcross"
 ZIG_VERSION="0.14.0"
 ZIG_DIR="$BASE_DIR/.local/zig"
 
-echo "🛠 Using base directory: $BASE_DIR"
+echo "Using base directory: $BASE_DIR"
 mkdir -p "$BASE_DIR"
 
 # === 1. Install Rust (user-level) ===
 if ! command -v rustup &> /dev/null; then
   echo "Installing rustup..."
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.87.0 -y
+  export PATH="$HOME/.cargo/bin:$PATH"
   rustup target add aarch64-unknown-linux-gnu
   rustup target add x86_64-apple-darwin
   rustup target add aarch64-apple-darwin
   rustup target add x86_64-pc-windows-gnu
   rustup target add aarch64-pc-windows-gnullvm
-  export PATH="$HOME/.cargo/bin:$PATH"
 fi
 
 # === 2. Install cargo-zigbuild ===

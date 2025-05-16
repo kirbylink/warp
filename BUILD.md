@@ -4,18 +4,20 @@ Instructions for building this repository on Linux.
 
 ## Table of Contents
 
-- [Build Instructions](#build-instructions)
-  - [Table of Contents](#table-of-contents)
-  - [Contributing to the Repository](#contributing-to-the-repository)
-  - [Repository Content](#repository-content)
-  - [Building on Linux](#building-on-linux)
-    - [Linux Development Environment Requirements](#linux-development-environment-requirements)
-      - [Required Package List](#required-package-list)
-      - [Install and Prepare Required Rust Version](#install-and-prepare-required-rust-version)
-      - [Required macOS SDK](#required-macos-sdk)
-        - [Build and Use macOS SDK from Xcode](#build-and-use-macos-sdk-from-xcode)
-        - [Prepare Cross-Compilation for Windows ARM64](#prepare-cross-compilation-for-windows-arm64)
-      - [Build the Project](#build-the-project)
+* [Build Instructions](#build-instructions)
+
+  * [Table of Contents](#table-of-contents)
+  * [Contributing to the Repository](#contributing-to-the-repository)
+  * [Repository Content](#repository-content)
+  * [Building on Linux](#building-on-linux)
+    * [Linux Development Environment Requirements](#linux-development-environment-requirements)
+      * [Required Package List](#required-package-list)
+      * [Install and Prepare Required Rust Version](#install-and-prepare-required-rust-version)
+      * [Required macOS SDK](#required-macos-sdk)
+        * [Build and Use macOS SDK from Xcode](#build-and-use-macos-sdk-from-xcode)
+        * [Prepare Cross-Compilation for Windows ARM64](#prepare-cross-compilation-for-windows-arm64)
+      * [Build the Project](#build-the-project)
+      * [Full Build Automation Script (Optional)](#full-build-automation-script-optional)
 
 ## Contributing to the Repository
 
@@ -29,7 +31,7 @@ This repository contains the source code necessary to build warp-packer for diff
 
 ### Linux Development Environment Requirements
 
-This repository has been built and tested on Debian 12.10 (Bookworm) on an AMD64 architecture.
+This repository has been built and tested on Debian 12.10 (Bookworm) on an AMD64 architecture. You should plan for at least **15 GB** of free disk space for all dependencies and build artifacts.
 
 #### Required Package List
 
@@ -72,6 +74,18 @@ To build warp-packer for the target `x86_64-apple-darwin`, a macOS SDK is needed
 There are several GitHub repositories available that contain different SDK versions, but they all seem to miss the header files. So it is recommended to download it from Apple's website.
 
 The macOS SDK is integrated into Xcode and Command Line Tools for Xcode. This repository has been built and tested with Command Line Tools for Xcode version 12.5.1 (`Command_Line_Tools_for_Xcode_12.5.1.dmg`).
+
+A free Apple account is needed to download the Command Line tools.
+
+1. Go to: [https://account.apple.com/sign-in](https://account.apple.com/sign-in) and log in.
+2. Then visit: [https://developer.apple.com/download/more/](https://developer.apple.com/download/more/)
+3. Search for: `Command_Line_Tools_for_Xcode_12.5.1.dmg`
+
+The direct download link may change, but as of this writing it is:
+
+```
+https://download.developer.apple.com/Developer_Tools/Command_Line_Tools_for_Xcode_12.5.1/Command_Line_Tools_for_Xcode_12.5.1.dmg
+```
 
 The resulting Clang and AR tools (e.g. `aarch64-apple-darwin20.4-clang` and `aarch64-apple-darwin20.4-ar`) must be referenced in the `.cargo/config.toml` file accordingly.
 
@@ -172,3 +186,37 @@ e.g.
 ```bash
 <path/to>/warp/target/aarch64-unknown-linux-gnu/release/warp-packer
 ```
+
+#### Full Build Automation Script (Optional)
+
+If you'd like to automate the full setup from downloading dependencies to compiling `warp`, you can use the following build script.
+
+1. Install system dependencies as described in the [Required Package List](#required-package-list) (with `apt` and root access).
+2. Download the script (e.g. `build.sh`) and make it executable:
+
+```bash
+chmod +x build.sh
+```
+
+3. Run it with an optional directory argument (e.g. on a mounted drive):
+
+```bash
+./build.sh /mnt/build-folder
+```
+
+If no argument is passed, the script uses `$HOME`.
+
+4. You still need to provide the path to the downloaded `Command_Line_Tools_for_Xcode_12.5.1.dmg` inside the script.
+
+This script installs:
+
+* Rust with `rustup` and the correct toolchain
+* Required Rust targets (see above)
+* `cargo-zigbuild`
+* Zig 0.14.0
+* osxcross (with `MacOSX11.3.sdk` extracted and built)
+* warp repository and compiles it with `make`
+
+> You can modify the script to suit your environment. It is designed to work with user privileges (except for `apt`).
+>
+> ℹ️ **Note:** You should only run the script once to set everything up. Afterward, you only need to run `make` in the cloned warp repository to rebuild it. However, the paths to the tools (like `osxcross`, `zig`, or the SDK) still need to be correctly set in your environment (e.g. via `PATH` or `.cargo/config.toml`).

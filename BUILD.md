@@ -5,7 +5,6 @@ Instructions for building this repository on Linux.
 ## Table of Contents
 
 * [Build Instructions](#build-instructions)
-
   * [Table of Contents](#table-of-contents)
   * [Contributing to the Repository](#contributing-to-the-repository)
   * [Repository Content](#repository-content)

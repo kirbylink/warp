@@ -14,6 +14,7 @@ Instructions for building this repository on Linux.
       - [Install and Prepare Required Rust Version](#install-and-prepare-required-rust-version)
       - [Required macOS SDK](#required-macos-sdk)
         - [Build and Use macOS SDK from Xcode](#build-and-use-macos-sdk-from-xcode)
+        - [Prepare Cross-Compilation for Windows ARM64](#prepare-cross-compilation-for-windows-arm64)
       - [Build the Project](#build-the-project)
 
 ## Contributing to the Repository
@@ -33,7 +34,7 @@ This repository has been built and tested on Debian 12.10 (Bookworm) on an AMD64
 #### Required Package List
 
 ```bash
-apt install curl maven clang cmake libssl-dev zlib1g-dev liblzma-dev libbz2-dev gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64-win32 git
+apt install curl maven clang cmake libssl-dev zlib1g-dev liblzma-dev libbz2-dev gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64-win32 git llvm lld
 ```
 
 #### Install and Prepare Required Rust Version
@@ -57,12 +58,12 @@ For more information see this [GitHub Issue](https://github.com/rust-lang/rustup
 After installing, run the following commands to get the necessary targets:
 
 ```bash
-rustup target add x86_64-apple-darwin
 rustup target add aarch64-unknown-linux-gnu
+rustup target add x86_64-apple-darwin
+rustup target add aarch64-apple-darwin
 rustup target add x86_64-pc-windows-gnu
+rustup target add aarch64-pc-windows-gnullvm
 ```
-
-> Note: Additional targets like `aarch64-apple-darwin` and `aarch64-pc-windows-gnu` can be added later if ARM64 support for macOS and Windows is required.
 
 #### Required macOS SDK
 
@@ -71,6 +72,8 @@ To build warp-packer for the target `x86_64-apple-darwin`, a macOS SDK is needed
 There are several GitHub repositories available that contain different SDK versions, but they all seem to miss the header files. So it is recommended to download it from Apple's website.
 
 The macOS SDK is integrated into Xcode and Command Line Tools for Xcode. This repository has been built and tested with Command Line Tools for Xcode version 12.5.1 (`Command_Line_Tools_for_Xcode_12.5.1.dmg`).
+
+The resulting Clang and AR tools (e.g. `aarch64-apple-darwin24.4-clang` and `aarch64-apple-darwin24.4-ar`) must be referenced in the `.cargo/config.toml` file accordingly.
 
 ##### Build and Use macOS SDK from Command Line Tools for Xcode
 
@@ -88,7 +91,7 @@ Extract the macOS SDK from Command Line Tools for Xcode:
 <path/to>/osxcross/tools/gen_sdk_package_tools_dmg.sh <path/to>/Command_Line_Tools_for_Xcode_12.5.1.dmg
 ```
 
-Copy or move only the SDK `MacOSX11.3.sdk` from `<path/to>/osxcross/`into the `<path/to>/osxcross/tarballs/` directory.
+Copy or move only the SDK `MacOSX11.3.sdk` from `<path/to>/osxcross/` into the `<path/to>/osxcross/tarballs/` directory.
 You may remove older or conflicting SDKs like `10.15` or `11` to avoid issues.
 
 Run the build script to create the macOS cross toolchain:
@@ -100,8 +103,30 @@ UNATTENDED=yes OSX_VERSION_MIN=11 SDK_VERSION=11.3 <path/to>/osxcross/build.sh
 After that, add the `target/bin` folder to your `PATH` environment variable:
 
 ```bash
-PATH="<path/to>/osxcross/target/bin:$PATH"
+export PATH="<path/to>/osxcross/target/bin:$PATH"
 ```
+
+##### Prepare Cross-Compilation for Windows ARM64
+
+To compile for Windows ARM64 (`aarch64-pc-windows-gnullvm`), the [`cargo-zigbuild`](https://github.com/messense/cargo-zigbuild) tool is used. It integrates the Zig compiler to simplify cross-compilation.
+
+Install `cargo-zigbuild`:
+
+```bash
+cargo install cargo-zigbuild
+```
+
+Download and unpack the Zig compiler (tested with version 0.14.0):
+
+```bash
+mkdir -p ~/.local/zig
+cd ~/.local/zig
+wget https://ziglang.org/download/0.14.0/zig-linux-x86_64-0.14.0.tar.xz
+tar -xf zig-linux-x86_64-0.14.0.tar.xz
+export PATH="$HOME/.local/zig/zig-linux-x86_64-0.14.0:$PATH"
+```
+
+This target uses the LLVM-based ABI and is officially supported by Rust. It is currently the most reliable option for producing ARM64 Windows binaries on Linux.
 
 #### Build the Project
 

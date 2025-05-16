@@ -534,7 +534,7 @@ Warp combines your runtime and application into a single file using two tools:
 * **`warp-runner`**: The runtime stub that extracts and launches your app
 * **`warp-packer`**: CLI tool that builds the binary, compresses files, and fetches `warp-runner`
 
-<img src="./documentation/warp_app_binary.png" width="272">
+<img src="documentation/warp-app-binary.png" width="272">
 
 ### First-time Run
 

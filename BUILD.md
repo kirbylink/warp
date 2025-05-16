@@ -219,7 +219,7 @@ This script installs:
 
 > You can modify the script to suit your environment. It is designed to work with user privileges (except for `apt`).
 >
-> ℹ️ **Note:** You should only run the script once to set everything up. Afterward, you only need to run `make` in the cloned warp repository to rebuild it. However, the paths to the tools (like `osxcross`, `zig`, or the SDK) still need to be correctly set in your environment (e.g. via `PATH` or `.cargo/config.toml`).
+> **Note:** You should only run the script once to set everything up. Afterward, you only need to run `make` in the cloned warp repository to rebuild it. However, the paths to the tools (like `osxcross`, `zig`, or the SDK) still need to be correctly set in your environment (e.g. via `PATH` or `.cargo/config.toml`).
 
 ## Building using GitHub Actions
 
@@ -230,7 +230,7 @@ If you prefer not to install all platform-specific dependencies locally, this re
 
 ### How to use
 
-You can trigger a full build of all binaries using GitHub Actions – **without creating a release**:
+You can trigger a full build of all binaries using GitHub Actions - **without creating a release**:
 
 1. Open the **["Actions" tab](../../actions)** of your repository on GitHub.
 2. Select the **"Build warp-runner and warp-packer"** workflow.
@@ -252,7 +252,7 @@ Each platform-specific binary will be named as follows:
 
 All files are available as artifacts for **90 days**.
 
-> ℹ️ **Note:**
+> **Note:**
 >
 > * The build uses GitHub-hosted runners including `ubuntu-24.04-arm` and `windows-11-arm`, which are currently in public preview. See [here](https://github.blog/changelog/2025-01-16-linux-arm64-hosted-runners-now-available-for-free-in-public-repositories-public-preview/) and [here](https://github.blog/changelog/2025-04-14-windows-arm64-hosted-runners-now-available-in-public-preview/).
-> * No release is required – the binaries are available directly from the Actions UI.
+> * No release is required - the binaries are available directly from the Actions UI.

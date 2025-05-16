@@ -26,7 +26,7 @@ build:
 
 	# Windows ARM64 (via zigbuild)
 	cargo zigbuild -p warp-runner --release --target aarch64-pc-windows-gnullvm
-	# No strip here – MSVC generates PDBs and stripping is not needed
+	# No strip here - MSVC generates PDBs and stripping is not needed
 
 	# --- Build warp-packer after all warp-runner builds are complete ---
 
@@ -52,7 +52,7 @@ build:
 
 	# Windows ARM64 (via zigbuild)
 	cargo zigbuild -p warp-packer --release --target aarch64-pc-windows-gnullvm
-	# No strip here – MSVC generates PDBs and stripping is not needed
+	# No strip here - MSVC generates PDBs and stripping is not needed
 
 clean:
 	cargo clean

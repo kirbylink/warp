@@ -31,10 +31,18 @@ lazy_static! {
         m.insert(
             "macos-x64",
             include_bytes!("../../target/x86_64-apple-darwin/release/warp-runner").as_slice(),
+		);
+        m.insert(
+            "macos-aarch64",
+            include_bytes!("../../target/aarch64-apple-darwin/release/warp-runner").as_slice(),
         );
         m.insert(
             "windows-x64",
             include_bytes!("../../target/x86_64-pc-windows-gnu/release/warp-runner.exe").as_slice(),
+        );
+        m.insert(
+            "windows-aarch64",
+            include_bytes!("../../target/aarch64-pc-windows-gnullvm/release/warp-runner.exe").as_slice(),
         );
         m
     };

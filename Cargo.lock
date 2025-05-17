@@ -679,7 +679,7 @@ dependencies = [
 
 [[package]]
 name = "warp-args"
-version = "0.1.0"
+version = "1.1.0"
 dependencies = [
  "bincode",
  "serde",
@@ -687,7 +687,7 @@ dependencies = [
 
 [[package]]
 name = "warp-packer"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "bincode",
  "clap",
@@ -701,7 +701,7 @@ dependencies = [
 
 [[package]]
 name = "warp-runner"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "anyhow",
  "bincode",

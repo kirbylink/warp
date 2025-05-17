@@ -6,10 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- Update rust dependencies
-- Updated BUILD.md with revised and tested setup instructions using newer SDK and toolchain versions
+### Added
+- Native build support for `aarch64-windows` (Windows ARM64)
+- Native build support for `aarch64-macos` (Apple Silicon)
+- GitHub Actions workflow to build `warp-runner` and `warp-packer` binaries for all major platforms (Linux, macOS, Windows – x64 and ARM64)
+- Documentation in `BUILD.md` for triggering builds via GitHub Actions
 
+### Changed
+- Updated Rust dependencies to latest compatible versions
+- Revised and tested `BUILD.md` instructions using newer SDKs and Rust toolchains
+- Improved and documented usage of the `build.sh` automation script for local builds
 
 ## [1.0.0] - 2024-05-18
 ### Changed

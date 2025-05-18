@@ -36,6 +36,8 @@ jobs:
             ext: ""
     steps:
       - uses: actions/checkout@v4
+      - name: Remove local cargo config (CI workaround)
+        run: rm -f .cargo/config.toml
       - name: Install target (if needed)
         if: matrix.target != ''
         run: rustup target add ${{ matrix.target }}
@@ -85,6 +87,8 @@ jobs:
             ext: ""
     steps:
       - uses: actions/checkout@v4
+      - name: Remove local cargo config (CI workaround)
+        run: rm -f .cargo/config.toml
       - name: Download all runner artifacts
         uses: actions/download-artifact@v4
         with:

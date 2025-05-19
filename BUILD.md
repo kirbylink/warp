@@ -225,7 +225,7 @@ This script installs:
 
 If you prefer not to install all platform-specific dependencies locally, this repository provides a GitHub Actions workflow to automatically build all `warp-runner` and `warp-packer` binaries for major platforms and architectures.
 
-**Workflow file**: [`build.yml`](.github/workflows/build.yml)
+**Workflow file**: [`build.yml`](.github/workflows/build.yml)  
 **GitHub Actions Documentation**: [Using workflows in your repository](https://docs.github.com/en/actions/using-workflows)
 
 ### How to use
@@ -256,3 +256,6 @@ All files are available as artifacts for **90 days**.
 >
 > * The build uses GitHub-hosted runners including `ubuntu-24.04-arm` and `windows-11-arm`, which are currently in public preview. See [here](https://github.blog/changelog/2025-01-16-linux-arm64-hosted-runners-now-available-for-free-in-public-repositories-public-preview/) and [here](https://github.blog/changelog/2025-04-14-windows-arm64-hosted-runners-now-available-in-public-preview/).
 > * No release is required - the binaries are available directly from the Actions UI.
+> * The Windows binaries built using GitHub-hosted runners use the **MSVC toolchain** and therefore **require the [Visual C++ Redistributable for x64](https://aka.ms/vs/17/release/vc_redist.x64.exe)** to be installed on the target machine.  
+>   If you're missing `VCRUNTIME140.dll`, installing this runtime should resolve the issue.
+> * Alternatively, you can use the cross-compiled Windows binaries built under Linux (with the GNU toolchain), which do **not** require additional runtimes.

@@ -1,0 +1,187 @@
+name: Build warp-runner and warp-packer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-runner:
+    name: Build warp-runner for ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - name: linux-x64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            ext: ""
+            releaseDirectory: x86_64-unknown-linux-gnu
+          - name: linux-aarch64
+            runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            ext: ""
+            releaseDirectory: aarch64-unknown-linux-gnu
+          - name: windows-x64
+            runner: windows-latest
+            target: ""
+            ext: ".exe"
+            releaseDirectory: x86_64-pc-windows-gnu
+          - name: windows-aarch64
+            runner: windows-11-arm
+            target: ""
+            ext: ".exe"
+            releaseDirectory: aarch64-pc-windows-gnullvm
+          - name: macos-x64
+            runner: macos-13
+            target: ""
+            ext: ""
+            releaseDirectory: x86_64-apple-darwin
+          - name: macos-aarch64
+            runner: macos-latest
+            target: ""
+            ext: ""
+            releaseDirectory: aarch64-apple-darwin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Remove local cargo config (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: rm -f .cargo/config.toml || true
+
+      - name: Remove local cargo config (Windows)
+        if: runner.os == 'Windows'
+        run: Remove-Item -Path ".cargo\config.toml" -Force -ErrorAction SilentlyContinue
+
+      - name: Install Rust (if needed)
+        if: matrix.name == 'windows-aarch64'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install target (if needed)
+        if: matrix.target != ''
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build warp-runner (with target)
+        if: matrix.target != ''
+        run: cd warp-runner && cargo build --release --target ${{ matrix.target }}
+
+      - name: Build warp-runner (native)
+        if: matrix.target == ''
+        run: cd warp-runner && cargo build --release -p warp-runner
+
+      - name: Copy output binary (with target)
+        if: matrix.target != ''
+        run: |
+          mkdir -p runner-out/target/${{ matrix.releaseDirectory }}/release
+          cp target/${{ matrix.target }}/release/warp-runner${{ matrix.ext }} runner-out/target/${{ matrix.releaseDirectory }}/release/warp-runner${{ matrix.ext }}
+
+      - name: Copy output binary (native)
+        if: matrix.target == ''
+        run: |
+          mkdir -p runner-out/target/${{ matrix.releaseDirectory }}/release
+          cp target/release/warp-runner${{ matrix.ext }} runner-out/target/${{ matrix.releaseDirectory }}/release/warp-runner${{ matrix.ext }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}-warp-runner
+          path: runner-out/target/
+
+  build-packer:
+    name: Build warp-packer for ${{ matrix.name }}
+    needs: build-runner
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - name: linux-x64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            ext: ""
+          - name: linux-aarch64
+            runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            ext: ""
+          - name: windows-x64
+            runner: windows-latest
+            target: ""
+            ext: ".exe"
+          - name: windows-aarch64
+            runner: windows-11-arm
+            target: ""
+            ext: ".exe"
+          - name: macos-x64
+            runner: macos-13
+            target: ""
+            ext: ""
+          - name: macos-aarch64
+            runner: macos-latest
+            target: ""
+            ext: ""
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Remove local cargo config (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: rm -f .cargo/config.toml || true
+
+      - name: Remove local cargo config (Windows)
+        if: runner.os == 'Windows'
+        run: Remove-Item -Path ".cargo\config.toml" -Force -ErrorAction SilentlyContinue
+
+      - name: Download all runner artifacts into temp/
+        uses: actions/download-artifact@v4
+        with:
+          path: temp/
+
+      - name: Restore runner binaries to expected target paths (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p target
+          for dir in temp/*; do
+            echo "Restoring $dir..."
+            cp -r "$dir"/* target/
+          done
+
+      - name: Restore runner binaries to expected target paths (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path target | Out-Null
+          Get-ChildItem -Directory -Path temp | ForEach-Object {
+            Write-Output "Restoring $_..."
+            Copy-Item -Recurse -Path "$($_.FullName)\*" -Destination target\
+          }
+
+      - name: Install Rust (if needed)
+        if: matrix.name == 'windows-aarch64'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install target (if needed)
+        if: matrix.target != ''
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build warp-packer (with target)
+        if: matrix.target != ''
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Build warp-packer (native)
+        if: matrix.target == ''
+        run: cargo build --release
+
+      - name: Copy warp-packer binary to artifact (with target)
+        if: matrix.target != ''
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/warp-packer${{ matrix.ext }} dist/${{ matrix.name }}.warp-packer${{ matrix.ext }}
+
+      - name: Copy warp-packer binary to artifact (native)
+        if: matrix.target == ''
+        run: |
+          mkdir -p dist
+          cp target/release/warp-packer${{ matrix.ext }} dist/${{ matrix.name }}.warp-packer${{ matrix.ext }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}.warp-packer
+          path: dist/${{ matrix.name }}.warp-packer${{ matrix.ext }}

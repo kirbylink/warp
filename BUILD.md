@@ -77,9 +77,9 @@ The macOS SDK is integrated into Xcode and Command Line Tools for Xcode. This re
 
 A free Apple account is needed to download the Command Line tools.
 
-1. Go to: [https://account.apple.com/sign-in](https://account.apple.com/sign-in) and log in.
+1. Go to: [https://developer.apple.com/account/](https://developer.apple.com/account/) and log in.
 2. Then visit: [https://developer.apple.com/download/more/](https://developer.apple.com/download/more/)
-3. Search for: `Command_Line_Tools_for_Xcode_12.5.1.dmg`
+3. Search for: `Command Line Tools for Xcode 12.5.1`
 
 The direct download link may change, but as of this writing it is:
 
@@ -192,7 +192,7 @@ e.g.
 If you'd like to automate the full setup from downloading dependencies to compiling `warp`, you can use the following build script.
 
 1. Install system dependencies as described in the [Required Package List](#required-package-list) (with `apt` and root access).
-2. Download the script (e.g. `build.sh`) and make it executable:
+2. Download the script [build.sh](build.sh) and make it executable:
 
 ```bash
 chmod +x build.sh

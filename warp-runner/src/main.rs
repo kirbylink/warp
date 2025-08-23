@@ -8,7 +8,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
 use warp_args::Args;
-use directories::ProjectDirs;
 
 use crate::extractor::get_args;
 
@@ -18,9 +17,11 @@ mod extractor;
 static STATIC_SUBFOLDER_NAME: &str = "static";
 
 fn cache_path(target: &str) -> Result<PathBuf> {
-    let proj_dirs = ProjectDirs::from("org", "warp", "warp")
-        .ok_or_else(|| anyhow!("No project directory found"))?;
-    Ok(proj_dirs.data_local_dir()
+    let base_dirs = directories::BaseDirs::new()
+        .ok_or_else(|| anyhow!("No base directory found"))?;
+
+    Ok(base_dirs.data_local_dir()
+        .join("warp")
         .join("packages")
         .join(target))
 }

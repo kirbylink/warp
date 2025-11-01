@@ -17,7 +17,7 @@ mkdir -p "$BASE_DIR"
 # === 1. Install Rust (user-level) ===
 if ! command -v rustup &> /dev/null; then
   echo "Installing rustup..."
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.87.0 -y
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.91.0 -y
   export PATH="$HOME/.cargo/bin:$PATH"
   rustup target add aarch64-unknown-linux-gnu
   rustup target add x86_64-apple-darwin

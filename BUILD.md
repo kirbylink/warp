@@ -31,7 +31,7 @@ This repository contains the source code necessary to build warp-packer for diff
 
 ### Linux Development Environment Requirements
 
-This repository has been built and tested on Debian 12.10 (Bookworm) on an AMD64 architecture. You should plan for at least **15 GB** of free disk space for all dependencies and build artifacts.
+This repository has been built and tested on Debian 12.12 (Bookworm) on an AMD64 architecture. You should plan for at least **15 GB** of free disk space for all dependencies and build artifacts.
 
 #### Required Package List
 
@@ -41,7 +41,7 @@ apt install curl maven clang cmake libssl-dev zlib1g-dev liblzma-dev libbz2-dev 
 
 #### Install and Prepare Required Rust Version
 
-This repository has been built and tested with Rust version 1.87.
+This repository has been built and tested with Rust version 1.91.
 
 To install the newest version, run the following command:
 
@@ -52,7 +52,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 If a newer version doesn't work, a specific version can be installed with the following command:
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.87.0
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.91.0
 ```
 
 For more information see this [GitHub Issue](https://github.com/rust-lang/rustup/issues/2882) and the [official installation instructions](https://rust-lang.github.io/rustup/installation/other.html).

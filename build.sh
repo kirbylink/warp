@@ -63,3 +63,14 @@ git clone https://github.com/kirbylink/warp.git
 cd warp
 echo "Building warp..."
 make
+
+echo "Bundle warp-packer files..."
+mkdir target/bundle
+cp target/aarch64-apple-darwin/release/warp-packer target/bundle/macos-aarch64.warp-packer
+cp target/x86_64-apple-darwin/release/warp-packer target/bundle/macos-x64.warp-packer
+cp target/aarch64-pc-windows-gnullvm/release/warp-packer.exe target/bundle/windows-aarch64.warp-packer.exe
+cp target/x86_64-pc-windows-gnu/release/warp-packer.exe target/bundle/windows-x64.warp-packer.exe
+cp target/aarch64-unknown-linux-gnu/release/warp-packer target/bundle/linux-aarch64.warp-packer
+cp target/x86_64-unknown-linux-gnu/release/warp-packer target/bundle/linux-x64.warp-packer
+
+echo "Build finished."

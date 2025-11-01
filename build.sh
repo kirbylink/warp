@@ -53,6 +53,9 @@ echo "Building osxcross toolchain..."
 UNATTENDED=yes OSX_VERSION_MIN=11 SDK_VERSION=11.3 ./build.sh
 export PATH="$OSXCROSS_DIR/target/bin:$PATH"
 
+echo "Using the following additional paths:"
+echo "$HOME/.cargo/bin:$ZIG_DIR/zig-linux-x86_64-$ZIG_VERSION:$OSXCROSS_DIR/target/bin"
+
 # === 5. Clone and build warp ===
 cd "$BASE_DIR"
 echo "Cloning warp..."

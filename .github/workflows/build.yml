@@ -31,12 +31,12 @@ jobs:
             ext: ".exe"
             releaseDirectory: aarch64-pc-windows-gnullvm
           - name: macos-x64
-            runner: macos-14-large
+            runner: macos-15-intel
             target: ""
             ext: ""
             releaseDirectory: x86_64-apple-darwin
           - name: macos-aarch64
-            runner: macos-14-xlarge
+            runner: macos-latest
             target: ""
             ext: ""
             releaseDirectory: aarch64-apple-darwin

@@ -109,7 +109,7 @@ jobs:
             target: ""
             ext: ".exe"
           - name: macos-x64
-            runner: macos-13
+            runner: macos-15-intel
             target: ""
             ext: ""
           - name: macos-aarch64

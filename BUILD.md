@@ -232,10 +232,11 @@ If you prefer not to install all platform-specific dependencies locally, this re
 
 You can trigger a full build of all binaries using GitHub Actions - **without creating a release**:
 
-1. Open the **["Actions" tab](../../actions)** of your repository on GitHub.
-2. Select the **"Build warp-runner and warp-packer"** workflow.
-3. Click the **"Run workflow"** button and choose the desired branch.
-4. Wait for the workflow to complete.
+1. Fork the project
+2. Open the **["Actions" tab](../../actions)** of your repository on GitHub.
+3. Select the **"Build warp-runner and warp-packer"** workflow.
+4. Click the **"Run workflow"** button and choose the desired branch.
+5. Wait for the workflow to complete.
 
 Once finished, you can download all generated binaries from the **Artifacts** section at the bottom of the workflow run.
 

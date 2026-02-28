@@ -181,13 +181,19 @@ jobs:
           mkdir -p dist
           cp target/release/warp-packer${{ matrix.ext }} dist/${{ matrix.name }}.warp-packer${{ matrix.ext }}
           
-      - name: Test warp-packer binary
+      - name: Test warp-packer binary (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
-          if [[ "${{ matrix.os }}" == "linux" || "${{ matrix.os }}" == "macos" ]]; then
-              ./dist/${{ matrix.name }}.warp-packer list
-          else
-              .\dist\${{ matrix.name }}.warp-packer${{ matrix.ext }} list
-          fi
+          echo "Testing warp-packer binary on ${{ runner.os }}"
+          ./dist/${{ matrix.name }}.warp-packer list
+      
+      - name: Test warp-packer binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Output "Testing warp-packer binary on Windows"
+          & ".\dist\${{ matrix.name }}.warp-packer${{ matrix.ext }}" list
 
       - uses: actions/upload-artifact@v4
         with:

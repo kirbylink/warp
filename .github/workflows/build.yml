@@ -180,6 +180,14 @@ jobs:
         run: |
           mkdir -p dist
           cp target/release/warp-packer${{ matrix.ext }} dist/${{ matrix.name }}.warp-packer${{ matrix.ext }}
+          
+      - name: Test warp-packer binary
+        run: |
+          if [[ "${{ matrix.os }}" == "linux" || "${{ matrix.os }}" == "macos" ]]; then
+              ./dist/${{ matrix.name }}.warp-packer list
+          else
+              .\dist\${{ matrix.name }}.warp-packer${{ matrix.ext }} list
+          fi
 
       - uses: actions/upload-artifact@v4
         with:

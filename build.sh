@@ -36,27 +36,11 @@ mkdir -p "$ZIG_DIR"
 cd "$ZIG_DIR"
 curl -LO "https://ziglang.org/download/$ZIG_VERSION/zig-x86_64-linux-$ZIG_VERSION.tar.xz"
 tar -xf "zig-x86_64-linux-$ZIG_VERSION.tar.xz"
-export PATH="$ZIG_DIR/zig-linux-x86_64-$ZIG_VERSION:$PATH"
+rm "zig-x86_64-linux-$ZIG_VERSION.tar.xz"
 
-# === 4. Download and build osxcross ===
-echo "Cloning osxcross..."
-git clone https://github.com/tpoechtrager/osxcross.git "$OSXCROSS_DIR"
-cd "$OSXCROSS_DIR"
+export PATH="$PATH:$ZIG_DIR/zig-linux-x86_64-$ZIG_VERSION"
 
-echo "Extracting macOS SDK..."
-./tools/gen_sdk_package_tools_dmg.sh "$XCODE_DMG"
-
-mkdir -p "$OSXCROSS_DIR/tarballs"
-cp -v MacOSX15.5.sdk.tar.xz tarballs/
-
-echo "Building osxcross toolchain..."
-UNATTENDED=yes OSX_VERSION_MIN=11 SDK_VERSION=15.5 ./build.sh
-export PATH="$OSXCROSS_DIR/target/bin:$PATH"
-
-echo "Using the following additional paths:"
-echo "$HOME/.cargo/bin:$ZIG_DIR/zig-linux-x86_64-$ZIG_VERSION:$OSXCROSS_DIR/target/bin"
-
-# === 5. Clone and build warp ===
+# === 4. Clone and build warp ===
 cd "$BASE_DIR"
 echo "Cloning warp..."
 git clone https://github.com/kirbylink/warp.git
@@ -68,6 +52,7 @@ echo "Bundle warp-packer files..."
 mkdir target/bundle
 cp target/aarch64-apple-darwin/release/warp-packer target/bundle/macos-aarch64.warp-packer
 cp target/x86_64-apple-darwin/release/warp-packer target/bundle/macos-x64.warp-packer
+cp target/universal2-apple-darwin/release/warp-packer target/bundle/macos-universal.warp-packer
 cp target/aarch64-pc-windows-gnullvm/release/warp-packer.exe target/bundle/windows-aarch64.warp-packer.exe
 cp target/x86_64-pc-windows-gnu/release/warp-packer.exe target/bundle/windows-x64.warp-packer.exe
 cp target/aarch64-unknown-linux-gnu/release/warp-packer target/bundle/linux-aarch64.warp-packer

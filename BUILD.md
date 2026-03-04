@@ -12,9 +12,7 @@ Instructions for building this repository on Linux.
     * [Linux Development Environment Requirements](#linux-development-environment-requirements)
       * [Required Package List](#required-package-list)
       * [Install and Prepare Required Rust Version](#install-and-prepare-required-rust-version)
-      * [Required macOS SDK](#required-macos-sdk)
-        * [Build and Use macOS SDK from Xcode](#build-and-use-macos-sdk-from-xcode)
-        * [Prepare Cross-Compilation for Windows ARM64](#prepare-cross-compilation-for-windows-arm64)
+      * [Install Zig - the compiler engine](#install-zig-the-compiler-engine)
       * [Build the Project](#build-the-project)
       * [Full Build Automation Script (Optional)](#full-build-automation-script-optional)
   * [Building using GitHub Actions](#building-using-github-actions)
@@ -36,7 +34,7 @@ This repository has been built and tested on Debian 13.3 (Trixie) on an AMD64 ar
 #### Required Package List
 
 ```bash
-apt install curl maven clang cmake libssl-dev zlib1g-dev liblzma-dev libbz2-dev gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64-win32 git llvm lld
+apt install curl git maven
 ```
 
 #### Install and Prepare Required Rust Version
@@ -67,96 +65,18 @@ rustup target add x86_64-pc-windows-gnu
 rustup target add aarch64-pc-windows-gnullvm
 ```
 
-#### Required macOS SDK
+#### Install Zig - the compiler engine
 
-To build warp-packer for the target `x86_64-apple-darwin`, a macOS SDK is needed. The repository has been built and tested with `MacOSX15.5.sdk`.
-
-There are several GitHub repositories available that contain different SDK versions, but they all seem to miss the header files. So it is recommended to download it from Apple's website.
-
-The macOS SDK is integrated into Xcode and Command Line Tools for Xcode. This repository has been built and tested with Command Line Tools for Xcode version 16.4 (`Command_Line_Tools_for_Xcode_16.4.dmg`).
-
-A free Apple account is needed to download the Command Line tools.
-
-1. Go to: [https://developer.apple.com/account/](https://developer.apple.com/account/) and log in.
-2. Then visit: [https://developer.apple.com/download/more/](https://developer.apple.com/download/more/)
-3. Search for: `Command Line Tools for Xcode 16.4`
-
-The direct download link may change, but as of this writing it is:
-
-```
-https://download.developer.apple.com/Developer_Tools/Command_Line_Tools_for_Xcode_16.4/Command_Line_Tools_for_Xcode_16.4.dmg
-```
-
-The resulting Clang and AR tools (e.g. `aarch64-apple-darwin24.5-clang` and `aarch64-apple-darwin24.5-ar`) must be referenced in the `.cargo/config.toml` file accordingly.
-
-> ⚠️ **Important:** The version `Command Line Tools for Xcode 16.4` must be used exactly as described. Using a different version will change the internal SDK version (e.g. `MacOSX15.5.sdk`) and toolchain prefix (e.g. `aarch64-apple-darwin24.5-clang`), which in turn requires manual adjustments to both the `Makefile` and `.cargo/config.toml`. This setup has been tested and validated only with version 16.4.
-
-##### Build and Use macOS SDK from Command Line Tools for Xcode
-
-To build and use the macOS SDK from Xcode, [osxcross](https://github.com/tpoechtrager/osxcross) will be used.
-
-Download osxcross:
-
-```bash
-git clone https://github.com/tpoechtrager/osxcross.git
-```
-
-Extract the macOS SDK from Command Line Tools for Xcode:
-
-```bash
-<path/to>/osxcross/tools/gen_sdk_package_tools_dmg.sh <path/to>/Command_Line_Tools_for_Xcode_16.4.dmg
-```
-
-Copy or move only the SDK `MacOSX15.5.sdk` from `<path/to>/osxcross/` into the `<path/to>/osxcross/tarballs/` directory.
-You may remove older or conflicting SDKs like `14.0`, `14.5` or `15.0` to avoid issues.
-
-Run the build script to create the macOS cross toolchain:
-
-```bash
-UNATTENDED=yes OSX_VERSION_MIN=11 SDK_VERSION=15.5 <path/to>/osxcross/build.sh
-```
-
-After that, add the `target/bin` folder to your `PATH` environment variable:
-
-```bash
-export PATH="<path/to>/osxcross/target/bin:$PATH"
-```
-
-To cross-compile with the osxcross toolchain, make sure your `.cargo/config.toml` includes entries like this (adjust paths if needed):
-
-```toml
-[target.x86_64-apple-darwin]
-linker = "x86_64-apple-darwin24.5-clang"
-ar = "x86_64-apple-darwin24.5-ar"
-
-[target.aarch64-apple-darwin]
-linker = "aarch64-apple-darwin24.5-clang"
-ar = "aarch64-apple-darwin24.5-ar"
-```
-
-These toolchain names depend on the SDK version and osxcross build result. If you use a different SDK, the version suffix (like 24.5) will likely change.
-
-##### Prepare Cross-Compilation for Windows ARM64
-
-To compile for Windows ARM64 (`aarch64-pc-windows-gnullvm`), the [`cargo-zigbuild`](https://github.com/messense/cargo-zigbuild) tool is used. It integrates the Zig compiler to simplify cross-compilation.
-
-Install `cargo-zigbuild`:
-
-```bash
-cargo install cargo-zigbuild
-```
-
-Download and unpack the Zig compiler (tested with version 0.14.0):
+Download and unpack the Zig compiler (tested with version 0.15.2):
 
 ```bash
 mkdir -p ~/.local/zig
 cd ~/.local/zig
 curl -LO https://ziglang.org/download/0.15.2/zig-x86_64-linux-0.15.2.tar.xz
 tar -xf zig-x86_64-linux-0.15.2.tar.xz
-export PATH="$HOME/.local/zig/zig-x86_64-linux-0.15.2:$PATH"
+rm zig-x86_64-linux-0.15.2.tar.xz
+export PATH="$PATH:$HOME/.local/zig"
 ```
-
-This target uses the LLVM-based ABI and is officially supported by Rust. It is currently the most reliable option for producing ARM64 Windows binaries on Linux.
 
 #### Build the Project
 
@@ -206,20 +126,17 @@ chmod +x build.sh
 
 If no argument is passed, the script uses `$HOME`.
 
-4. You still need to provide the path to the downloaded `Command_Line_Tools_for_Xcode_16.4.dmg` inside the script.
-
 This script installs:
 
 * Rust with `rustup` and the correct toolchain
 * Required Rust targets (see above)
 * `cargo-zigbuild`
-* Zig 0.15.2
-* osxcross (with `MacOSX15.5.sdk` extracted and built)
+* Zigland
 * warp repository and compiles it with `make`
 
 > You can modify the script to suit your environment. It is designed to work with user privileges (except for `apt`).
 >
-> **Note:** You should only run the script once to set everything up. Afterward, you only need to run `make` in the cloned warp repository to rebuild it. However, the paths to the tools (like `osxcross`, `zig`, or the SDK) still need to be correctly set in your environment (e.g. via `PATH` or `.cargo/config.toml`).
+> **Note:** You should only run the script once to set everything up. Afterward, you only need to run `make` in the cloned warp repository to rebuild it.
 
 ## Building using GitHub Actions
 

@@ -12,6 +12,7 @@ Instructions for building this repository on Linux.
     * [Linux Development Environment Requirements](#linux-development-environment-requirements)
       * [Required Package List](#required-package-list)
       * [Install and Prepare Required Rust Version](#install-and-prepare-required-rust-version)
+      * [Install cargo-zigbuild](#install-cargo-zigbuild)
       * [Install Zig - the compiler engine](#install-zig-the-compiler-engine)
       * [Build the Project](#build-the-project)
       * [Full Build Automation Script (Optional)](#full-build-automation-script-optional)
@@ -29,12 +30,12 @@ This repository contains the source code necessary to build warp-packer for diff
 
 ### Linux Development Environment Requirements
 
-This repository has been built and tested on Debian 13.3 (Trixie) on an AMD64 architecture. You should plan for at least **15 GB** of free disk space for all dependencies and build artifacts.
+This repository has been built and tested on Debian 13.3 (Trixie) on an AMD64 architecture. You should plan for at least **5–10 GB** of free disk space for dependencies and build artifacts.
 
 #### Required Package List
 
 ```bash
-apt install curl git maven
+apt install curl git
 ```
 
 #### Install and Prepare Required Rust Version
@@ -65,6 +66,16 @@ rustup target add x86_64-pc-windows-gnu
 rustup target add aarch64-pc-windows-gnullvm
 ```
 
+#### Install cargo-zigbuild
+
+This project uses `cargo-zigbuild` to simplify cross-compilation using the Zig compiler.
+
+Install it with:
+
+```bash
+cargo install cargo-zigbuild
+````
+
 #### Install Zig - the compiler engine
 
 Download and unpack the Zig compiler (tested with version 0.15.2):
@@ -75,7 +86,12 @@ cd ~/.local/zig
 curl -LO https://ziglang.org/download/0.15.2/zig-x86_64-linux-0.15.2.tar.xz
 tar -xf zig-x86_64-linux-0.15.2.tar.xz
 rm zig-x86_64-linux-0.15.2.tar.xz
-export PATH="$PATH:$HOME/.local/zig"
+````
+
+Add Zig to your `PATH`:
+
+```bash
+export PATH="$PATH:$HOME/.local/zig/zig-x86_64-linux-0.15.2"
 ```
 
 #### Build the Project
@@ -91,9 +107,9 @@ And within the project directory, run:
 
 ```bash
 make
-```
+````
 
-to start the build.
+to build all `warp-packer` binaries.
 
 The compiled warp-packer files are in the folder:
 
@@ -131,12 +147,12 @@ This script installs:
 * Rust with `rustup` and the correct toolchain
 * Required Rust targets (see above)
 * `cargo-zigbuild`
-* Zigland
-* warp repository and compiles it with `make`
+* Zig
+* the `warp` repository and builds it with `make`
 
 > You can modify the script to suit your environment. It is designed to work with user privileges (except for `apt`).
 >
-> **Note:** You should only run the script once to set everything up. Afterward, you only need to run `make` in the cloned warp repository to rebuild it.
+> The script can safely be executed multiple times. It will only install missing dependencies and then rebuild the project.
 
 ## Building using GitHub Actions
 

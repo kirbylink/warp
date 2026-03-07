@@ -109,7 +109,7 @@ chmod +x launch
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```sh
 cd ..
-curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.1/linux-x64.warp-packer
+curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.2/linux-x64.warp-packer
 chmod +x warp-packer
 ```
 
@@ -193,7 +193,7 @@ chmod +x launch
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```sh
 cd ..
-curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.1/macos-x64.warp-packer
+curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.2/macos-x64.warp-packer
 chmod +x warp-packer
 ```
 
@@ -273,7 +273,7 @@ EXIT /B %ERRORLEVEL%
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```powershell
 cd ..
-[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" ; Invoke-WebRequest https://github.com/kirbylink/warp/releases/download/1.1.1/windows-x64.warp-packer.exe -OutFile warp-packer.exe
+[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" ; Invoke-WebRequest https://github.com/kirbylink/warp/releases/download/1.1.2/windows-x64.warp-packer.exe -OutFile warp-packer.exe
 ```
 
 **Create your self-contained application**
@@ -322,7 +322,7 @@ The application should be published to `bin/Release/netcoreapp2.1/linux-x64/publ
 
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```sh
-curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.1/linux-x64.warp-packer
+curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.2/linux-x64.warp-packer
 chmod +x warp-packer
 ```
 
@@ -372,7 +372,7 @@ The application should be published to `bin/Release/netcoreapp2.1/osx-x64/publis
 
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```sh
-curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.1/macos-x64.warp-packer
+curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.2/macos-x64.warp-packer
 chmod +x warp-packer
 ```
 
@@ -423,7 +423,7 @@ The application should be published to `bin/Release/netcoreapp2.1/win10-x64/publ
 
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" ; Invoke-WebRequest https://github.com/kirbylink/warp/releases/download/1.1.1/windows-x64.warp-packer.exe -OutFile warp-packer.exe
+[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" ; Invoke-WebRequest https://github.com/kirbylink/warp/releases/download/1.1.2/windows-x64.warp-packer.exe -OutFile warp-packer.exe
 ```
 
 **Create your self-contained application**
@@ -509,7 +509,7 @@ chmod +x bundle/run.sh
 7. **Download warp-packer** (if not already in PATH):
 
 ```bash
-curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.1/linux-x64.warp-packer
+curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.2/linux-x64.warp-packer
 chmod +x warp-packer
 ```
 

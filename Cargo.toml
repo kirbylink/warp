@@ -1,3 +1,7 @@
 [workspace]
 members = ["warp-args", "warp-runner", "warp-packer"]
 resolver = "2"
+
+[profile.release]
+strip = true
+lto = true

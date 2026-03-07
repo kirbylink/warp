@@ -1,6 +1,6 @@
 # Build Instructions
 
-Instructions for building this repository on Linux.
+BUILD.md containing instructions on how to build warp-packer.
 
 ## Table of Contents
 
@@ -74,7 +74,7 @@ Install it with:
 
 ```bash
 cargo install cargo-zigbuild
-````
+```
 
 #### Install Zig - the compiler engine
 
@@ -86,7 +86,7 @@ cd ~/.local/zig
 curl -LO https://ziglang.org/download/0.15.2/zig-x86_64-linux-0.15.2.tar.xz
 tar -xf zig-x86_64-linux-0.15.2.tar.xz
 rm zig-x86_64-linux-0.15.2.tar.xz
-````
+```
 
 Add Zig to your `PATH`:
 
@@ -107,7 +107,7 @@ And within the project directory, run:
 
 ```bash
 make
-````
+```
 
 to build all `warp-packer` binaries.
 
@@ -122,6 +122,10 @@ e.g.
 ```bash
 <path/to>/warp/target/aarch64-unknown-linux-gnu/release/warp-packer
 ```
+
+The build script additionally bundles all compiled binaries into:
+
+target/bundle/
 
 #### Full Build Automation Script (Optional)
 
@@ -144,11 +148,13 @@ If no argument is passed, the script uses `$HOME`.
 
 This script installs:
 
-* Rust with `rustup` and the correct toolchain
-* Required Rust targets (see above)
-* `cargo-zigbuild`
-* Zig
-* the `warp` repository and builds it with `make`
+* installs Rust via rustup
+* installs all required Rust compilation targets
+* installs cargo-zigbuild
+* downloads and configures Zig
+* clones the warp repository
+* builds warp for all supported targets
+* bundles the resulting warp-packer binaries
 
 > You can modify the script to suit your environment. It is designed to work with user privileges (except for `apt`).
 >

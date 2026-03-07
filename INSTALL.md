@@ -8,6 +8,7 @@ Instructions for installing the warp-packer executable on Linux, Mac, and Window
   - [Table of Contents](#table-of-contents)
   - [Linux](#linux)
   - [Mac](#mac)
+    - [Gatekeeper and Quarantine Attribute](#gatekeeper-and-quarantine-attribute)
   - [Windows](#windows)
 
 ## Linux
@@ -55,6 +56,25 @@ Instructions for installing the warp-packer executable on Linux, Mac, and Window
    ```sh
    warp-packer --version
    ```
+
+### Gatekeeper and Quarantine Attribute
+
+When downloading executables from the internet, macOS may mark them with a **quarantine attribute**.  
+This security mechanism is part of Apple's *Gatekeeper* and can prevent unsigned binaries from running.
+
+If macOS reports that the file is damaged or refuses to execute it, you can remove the quarantine attribute with:
+
+```sh
+xattr -d com.apple.quarantine /usr/local/bin/warp-packer
+````
+
+After removing the attribute, try running the program again:
+
+```sh
+warp-packer --version
+```
+
+This step may be necessary when installing binaries that are not signed with an Apple Developer certificate.
 
 ## Windows
 

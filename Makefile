@@ -15,10 +15,12 @@ build:
 	# macOS x86_64
 	cargo build -p warp-runner --release --target x86_64-apple-darwin
 	x86_64-apple-darwin24.5-strip target/x86_64-apple-darwin/release/warp-runner
+	rcodesign sign target/x86_64-apple-darwin/release/warp-runner
 
 	# macOS ARM64
 	cargo build -p warp-runner --release --target aarch64-apple-darwin
 	x86_64-apple-darwin24.5-strip target/aarch64-apple-darwin/release/warp-runner || true
+	rcodesign sign target/aarch64-apple-darwin/release/warp-runner
 
 	# Windows x86_64
 	cargo build -p warp-runner --release --target x86_64-pc-windows-gnu
@@ -41,10 +43,12 @@ build:
 	# macOS x86_64
 	cargo build -p warp-packer --release --target x86_64-apple-darwin
 	x86_64-apple-darwin24.5-strip target/x86_64-apple-darwin/release/warp-packer
+	rcodesign sign target/x86_64-apple-darwin/release/warp-packer
 
 	# macOS ARM64
 	cargo build -p warp-packer --release --target aarch64-apple-darwin
 	x86_64-apple-darwin24.5-strip target/aarch64-apple-darwin/release/warp-packer || true
+	rcodesign sign target/aarch64-apple-darwin/release/warp-packer
 
 	# Windows x86_64
 	cargo build -p warp-packer --release --target x86_64-pc-windows-gnu

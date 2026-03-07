@@ -2,13 +2,13 @@
 set -e
 
 # === CONFIGURATION ===
-XCODE_DMG="/path/to/Command_Line_Tools_for_Xcode_12.5.1.dmg"
+XCODE_DMG="/path/to/Command_Line_Tools_for_Xcode_16.4.dmg"
 
 # === TARGET DIRECTORY (default: $HOME) ===
 BASE_DIR="${1:-$HOME}"
 
 OSXCROSS_DIR="$BASE_DIR/osxcross"
-ZIG_VERSION="0.14.0"
+ZIG_VERSION="0.15.2"
 ZIG_DIR="$BASE_DIR/.local/zig"
 
 echo "Using base directory: $BASE_DIR"
@@ -17,7 +17,7 @@ mkdir -p "$BASE_DIR"
 # === 1. Install Rust (user-level) ===
 if ! command -v rustup &> /dev/null; then
   echo "Installing rustup..."
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.87.0 -y
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.93.1 -y
   export PATH="$HOME/.cargo/bin:$PATH"
   rustup target add aarch64-unknown-linux-gnu
   rustup target add x86_64-apple-darwin
@@ -26,19 +26,24 @@ if ! command -v rustup &> /dev/null; then
   rustup target add aarch64-pc-windows-gnullvm
 fi
 
-# === 2. Install cargo-zigbuild ===
+# === 2. Install apple-codesign ===
+echo "Installing apple-codesign..."
+cargo install apple-codesign
+
+# === 3. Install cargo-zigbuild ===
 echo "Installing cargo-zigbuild..."
 cargo install cargo-zigbuild
 
-# === 3. Download Zig compiler ===
+# === 4. Download Zig compiler ===
 echo "Downloading Zig $ZIG_VERSION..."
 mkdir -p "$ZIG_DIR"
 cd "$ZIG_DIR"
-curl -LO "https://ziglang.org/download/$ZIG_VERSION/zig-linux-x86_64-$ZIG_VERSION.tar.xz"
-tar -xf "zig-linux-x86_64-$ZIG_VERSION.tar.xz"
-export PATH="$ZIG_DIR/zig-linux-x86_64-$ZIG_VERSION:$PATH"
+curl -LO "https://ziglang.org/download/$ZIG_VERSION/zig-x86_64-linux-$ZIG_VERSION.tar.xz"
+tar -xf "zig-x86_64-linux-$ZIG_VERSION.tar.xz"
+rm "zig-x86_64-linux-$ZIG_VERSION.tar.xz"
+export PATH="$ZIG_DIR/zig-x86_64-linux-$ZIG_VERSION:$PATH"
 
-# === 4. Download and build osxcross ===
+# === 5. Download and build osxcross ===
 echo "Cloning osxcross..."
 git clone https://github.com/tpoechtrager/osxcross.git "$OSXCROSS_DIR"
 cd "$OSXCROSS_DIR"
@@ -47,16 +52,30 @@ echo "Extracting macOS SDK..."
 ./tools/gen_sdk_package_tools_dmg.sh "$XCODE_DMG"
 
 mkdir -p "$OSXCROSS_DIR/tarballs"
-cp -v MacOSX11.3.sdk.tar.xz tarballs/
+cp -v "$OSXCROSS_DIR"/MacOSX15.5.sdk.tar.xz "$OSXCROSS_DIR/tarballs/"
 
 echo "Building osxcross toolchain..."
-UNATTENDED=yes OSX_VERSION_MIN=11 SDK_VERSION=11.3 ./build.sh
+UNATTENDED=yes OSX_VERSION_MIN=11 SDK_VERSION=15.5 ./build.sh
 export PATH="$OSXCROSS_DIR/target/bin:$PATH"
 
-# === 5. Clone and build warp ===
+echo "Using the following additional paths:"
+echo "$HOME/.cargo/bin:$ZIG_DIR/zig-x86_64-linux-$ZIG_VERSION:$OSXCROSS_DIR/target/bin"
+
+# === 6. Clone and build warp ===
 cd "$BASE_DIR"
 echo "Cloning warp..."
 git clone https://github.com/kirbylink/warp.git
 cd warp
 echo "Building warp..."
 make
+
+echo "Bundle warp-packer files..."
+mkdir -p target/bundle
+cp target/aarch64-apple-darwin/release/warp-packer target/bundle/macos-aarch64.warp-packer
+cp target/x86_64-apple-darwin/release/warp-packer target/bundle/macos-x64.warp-packer
+cp target/aarch64-pc-windows-gnullvm/release/warp-packer.exe target/bundle/windows-aarch64.warp-packer.exe
+cp target/x86_64-pc-windows-gnu/release/warp-packer.exe target/bundle/windows-x64.warp-packer.exe
+cp target/aarch64-unknown-linux-gnu/release/warp-packer target/bundle/linux-aarch64.warp-packer
+cp target/x86_64-unknown-linux-gnu/release/warp-packer target/bundle/linux-x64.warp-packer
+
+echo "Build finished."

@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Update dependencies
+
+### Fixed
+- Added code signature structure for MacOS
+- Update build process and documentation to fix MacOS aarch support
+- Update Apple runner in GitHub Workflow
 
 ## [v1.1.1] - 2025-08-23
 ### Fixed

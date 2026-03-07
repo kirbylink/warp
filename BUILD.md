@@ -142,7 +142,7 @@ These toolchain names depend on the SDK version and osxcross build result. If yo
 When building binaries for **macOS on Apple Silicon (ARM64)**, macOS may refuse to run unsigned executables.
 In such cases the system can display an error like:
 
-> *“The application is damaged and can’t be opened.”*
+> *“The application is damaged and can't be opened.”*
 
 To avoid this issue, the build process uses the tool **`apple-codesign`**, which provides the `rcodesign` utility.
 This tool applies an **ad-hoc code signature** to the generated macOS binaries.

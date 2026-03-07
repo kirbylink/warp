@@ -560,7 +560,7 @@ When distributing macOS binaries created with `warp-packer`, users may encounter
 
 In some cases macOS may display messages such as:
 
-- *“The application is damaged and can’t be opened.”*
+- *“The application is damaged and can't be opened.”*
 - *“This app cannot be opened because it is from an unidentified developer.”*
 
 For local testing, the quarantine attribute can be removed using:

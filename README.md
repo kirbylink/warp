@@ -19,6 +19,7 @@ Warp is written in Rust and supports **Linux**, **Windows**, and **macOS**.
   - [Windows](#windows-1)
 - [Quickstart with Java](#quickstart-with-java)
 - [How it Works](#how-it-works)
+- [macOS Security Considerations](#macos-security-considerations)
 - [Authors](#authors)
 - [License](#license)
 
@@ -545,6 +546,32 @@ The first execution unpacks your app to a cache directory and runs it. Subsequen
 * Linux: `$HOME/.local/share/warp/`
 * macOS: `$HOME/Library/Application Support/warp/`
 * Windows: `%LOCALAPPDATA%\warp\`
+
+---
+
+## macOS Security Considerations
+
+Recent versions of macOS include security mechanisms such as **Gatekeeper** and the **quarantine attribute**.
+
+When distributing macOS binaries created with `warp-packer`, users may encounter warnings if the executable:
+
+- is **not signed with an Apple Developer certificate**, or
+- was **downloaded from the internet**, which automatically adds a quarantine attribute.
+
+In some cases macOS may display messages such as:
+
+- *“The application is damaged and can’t be opened.”*
+- *“This app cannot be opened because it is from an unidentified developer.”*
+
+For local testing, the quarantine attribute can be removed using:
+
+```sh
+xattr -d com.apple.quarantine <binary>
+````
+
+Alternatively, developers distributing macOS applications should consider **proper code signing and notarization** using Apple's developer tools.
+
+The build process used in this repository applies an **ad-hoc code signature** to the generated macOS binaries to improve compatibility, but this is not a replacement for official Apple code signing.
 
 ---
 

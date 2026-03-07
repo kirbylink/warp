@@ -1,6 +1,6 @@
 # Build Instructions
 
-Instructions for building this repository on Linux.
+BUILD.md containing instructions on how to build warp-packer.
 
 ## Table of Contents
 
@@ -13,8 +13,9 @@ Instructions for building this repository on Linux.
       * [Required Package List](#required-package-list)
       * [Install and Prepare Required Rust Version](#install-and-prepare-required-rust-version)
       * [Required macOS SDK](#required-macos-sdk)
-        * [Build and Use macOS SDK from Xcode](#build-and-use-macos-sdk-from-xcode)
-        * [Prepare Cross-Compilation for Windows ARM64](#prepare-cross-compilation-for-windows-arm64)
+        * [Build and Use macOS SDK from Command Line Tools for Xcode](#build-and-use-macos-sdk-from-command-line-tools-for-xcode)
+        * [Additional Tool for macOS ARM64 Compatibility](#additional-tool-for-macos-arm64-compatibility)
+      * [Prepare Cross-Compilation for Windows ARM64](#prepare-cross-compilation-for-windows-arm64)
       * [Build the Project](#build-the-project)
       * [Full Build Automation Script (Optional)](#full-build-automation-script-optional)
   * [Building using GitHub Actions](#building-using-github-actions)
@@ -36,7 +37,7 @@ This repository has been built and tested on Debian 13.3 (Trixie) on an AMD64 ar
 #### Required Package List
 
 ```bash
-apt install curl maven clang cmake libssl-dev zlib1g-dev liblzma-dev libbz2-dev gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64-win32 git llvm lld
+apt install curl git tar xz-utils clang cmake libssl-dev zlib1g-dev liblzma-dev libbz2-dev gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64-win32 llvm lld
 ```
 
 #### Install and Prepare Required Rust Version
@@ -136,7 +137,28 @@ ar = "aarch64-apple-darwin24.5-ar"
 
 These toolchain names depend on the SDK version and osxcross build result. If you use a different SDK, the version suffix (like 24.5) will likely change.
 
-##### Prepare Cross-Compilation for Windows ARM64
+##### Additional Tool for macOS ARM64 Compatibility
+
+When building binaries for **macOS on Apple Silicon (ARM64)**, macOS may refuse to run unsigned executables.
+In such cases the system can display an error like:
+
+> *“The application is damaged and can’t be opened.”*
+
+To avoid this issue, the build process uses the tool **`apple-codesign`**, which provides the `rcodesign` utility.
+This tool applies an **ad-hoc code signature** to the generated macOS binaries.
+
+An ad-hoc signature does **not require an Apple Developer certificate**.
+It simply adds the minimal signature metadata required by macOS so the binary is accepted by the system loader.
+
+Install the tool using Cargo:
+
+```bash
+cargo install apple-codesign
+```
+
+During the build process, the `Makefile` automatically signs the generated macOS binaries using `rcodesign`. No additional manual steps are required.
+
+#### Prepare Cross-Compilation for Windows ARM64
 
 To compile for Windows ARM64 (`aarch64-pc-windows-gnullvm`), the [`cargo-zigbuild`](https://github.com/messense/cargo-zigbuild) tool is used. It integrates the Zig compiler to simplify cross-compilation.
 
@@ -146,7 +168,7 @@ Install `cargo-zigbuild`:
 cargo install cargo-zigbuild
 ```
 
-Download and unpack the Zig compiler (tested with version 0.14.0):
+Download and unpack the Zig compiler (tested with version 0.15.2):
 
 ```bash
 mkdir -p ~/.local/zig
@@ -187,6 +209,10 @@ e.g.
 <path/to>/warp/target/aarch64-unknown-linux-gnu/release/warp-packer
 ```
 
+The build script additionally bundles all compiled binaries into:
+
+target/bundle/
+
 #### Full Build Automation Script (Optional)
 
 If you'd like to automate the full setup from downloading dependencies to compiling `warp`, you can use the following build script.
@@ -208,14 +234,16 @@ If no argument is passed, the script uses `$HOME`.
 
 4. You still need to provide the path to the downloaded `Command_Line_Tools_for_Xcode_16.4.dmg` inside the script.
 
-This script installs:
+The script performs the following steps automatically:
 
-* Rust with `rustup` and the correct toolchain
-* Required Rust targets (see above)
-* `cargo-zigbuild`
-* Zig 0.15.2
-* osxcross (with `MacOSX15.5.sdk` extracted and built)
-* warp repository and compiles it with `make`
+* installs Rust via rustup
+* installs all required Rust compilation targets
+* installs cargo-zigbuild and apple-codesign
+* downloads and configures Zig
+* builds the macOS cross-compilation toolchain using osxcross
+* clones the warp repository
+* builds warp for all supported targets
+* bundles the resulting warp-packer binaries
 
 > You can modify the script to suit your environment. It is designed to work with user privileges (except for `apt`).
 >

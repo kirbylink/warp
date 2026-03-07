@@ -1,14 +1,21 @@
-# Warp
+# warp
 
-Warp lets you create self-contained single binary applications, making it easier to deliver your software to end users without requiring them to install runtimes or dependencies.
+![GitHub Release](https://img.shields.io/github/v/release/kirbylink/warp)
+![GitHub Downloads](https://img.shields.io/github/downloads/kirbylink/warp/total)
+![License](https://img.shields.io/github/license/kirbylink/warp)
 
-Warp is written in Rust and supports **Linux**, **Windows**, and **macOS**.
+A maintained fork of the original [Warp](https://github.com/dgiagio/warp) project with updated tooling, improved cross-platform builds, and compatibility fixes for modern systems.
+
+This fork focuses on reliable multi-platform builds using **Rust**, **Zig**, and **cargo-zigbuild**, producing binaries for Linux, Windows, and macOS (including Apple Silicon).
 
 ---
 
 ## Table of Contents
 
+- [Changes in v1.2.0](#changes-in-v120)
 - [Changes in v1.0.0](#changes-in-v100)
+- [Prebuilt Binaries](#prebuilt-binaries)
+- [Supported Platforms](#supported-platforms)
 - [Quickstart with Node.js](#quickstart-with-nodejs)
   - [Linux](#linux)
   - [macOS](#macos)
@@ -22,6 +29,15 @@ Warp is written in Rust and supports **Linux**, **Windows**, and **macOS**.
 - [macOS Security Considerations](#macos-security-considerations)
 - [Authors](#authors)
 - [License](#license)
+
+---
+
+## Changes in v1.2.0
+
+### Improvements
+
+* Added **macOS Universal binary support** (`universal2-apple-darwin`), allowing the same executable to run on both Intel and Apple Silicon Macs.
+* Simplified the cross-compilation toolchain by switching fully to **cargo-zigbuild** and **Zig**, removing the need for `osxcross`, macOS SDK downloads, and additional signing tools.
 
 ---
 
@@ -49,6 +65,42 @@ warp-packer pack <args>
 * `-q, --unique-id`: Creates a unique ID for each package (for testing/multiple versions)
 * `-p, --prefix`: Set a custom name for the extraction directory
 * `-n, --no-clean`: Prevents overwriting extracted versions in the cache
+
+---
+
+## Prebuilt Binaries
+
+Prebuilt `warp-packer` binaries are available on the
+[GitHub Releases](https://github.com/kirbylink/warp/releases) page.
+
+Available platforms:
+
+- Linux (x64, aarch64)
+- Windows (x64, aarch64)
+- macOS (x64, aarch64, universal)
+
+Example download (Linux x64):
+
+```bash
+curl -Lo warp-packer \
+https://github.com/kirbylink/warp/releases/latest/download/linux-x64.warp-packer
+
+chmod +x warp-packer
+```
+
+---
+
+## Supported Platforms
+
+| Platform | Architecture | Binary |
+|--------|--------|--------|
+| Linux | x64 | ✅ |
+| Linux | ARM64 | ✅ |
+| Windows | x64 | ✅ |
+| Windows | ARM64 | ✅ |
+| macOS | Intel | ✅ |
+| macOS | Apple Silicon | ✅ |
+| macOS | Universal | ✅ |
 
 ---
 
@@ -109,7 +161,7 @@ chmod +x launch
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```sh
 cd ..
-curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.2/linux-x64.warp-packer
+curl -Lo warp-packer https://github.com/kirbylink/warp/releases/latest/download/linux-x64.warp-packer
 chmod +x warp-packer
 ```
 
@@ -193,7 +245,7 @@ chmod +x launch
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```sh
 cd ..
-curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.2/macos-x64.warp-packer
+curl -Lo warp-packer https://github.com/kirbylink/warp/releases/latest/download/macos-x64.warp-packer
 chmod +x warp-packer
 ```
 
@@ -273,7 +325,7 @@ EXIT /B %ERRORLEVEL%
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```powershell
 cd ..
-[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" ; Invoke-WebRequest https://github.com/kirbylink/warp/releases/download/1.1.2/windows-x64.warp-packer.exe -OutFile warp-packer.exe
+[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" ; Invoke-WebRequest https://github.com/kirbylink/warp/releases/latest/download/windows-x64.warp-packer.exe -OutFile warp-packer.exe
 ```
 
 **Create your self-contained application**
@@ -322,7 +374,7 @@ The application should be published to `bin/Release/netcoreapp2.1/linux-x64/publ
 
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```sh
-curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.2/linux-x64.warp-packer
+curl -Lo warp-packer https://github.com/kirbylink/warp/releases/latest/download/linux-x64.warp-packer
 chmod +x warp-packer
 ```
 
@@ -372,7 +424,7 @@ The application should be published to `bin/Release/netcoreapp2.1/osx-x64/publis
 
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```sh
-curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.2/macos-x64.warp-packer
+curl -Lo warp-packer https://github.com/kirbylink/warp/releases/latest/download/macos-x64.warp-packer
 chmod +x warp-packer
 ```
 
@@ -423,7 +475,7 @@ The application should be published to `bin/Release/netcoreapp2.1/win10-x64/publ
 
 If you save `warp-packer` in a directory in your PATH, you only need to download it once.
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" ; Invoke-WebRequest https://github.com/kirbylink/warp/releases/download/1.1.2/windows-x64.warp-packer.exe -OutFile warp-packer.exe
+[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" ; Invoke-WebRequest https://github.com/kirbylink/warp/releases/latest/download/windows-x64.warp-packer.exe -OutFile warp-packer.exe
 ```
 
 **Create your self-contained application**
@@ -509,7 +561,7 @@ chmod +x bundle/run.sh
 7. **Download warp-packer** (if not already in PATH):
 
 ```bash
-curl -Lo warp-packer https://github.com/kirbylink/warp/releases/download/1.1.2/linux-x64.warp-packer
+curl -Lo warp-packer https://github.com/kirbylink/warp/releases/latest/download/linux-x64.warp-packer
 chmod +x warp-packer
 ```
 

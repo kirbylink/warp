@@ -30,12 +30,12 @@ This repository contains the source code necessary to build warp-packer for diff
 
 ### Linux Development Environment Requirements
 
-This repository has been built and tested on Debian 13.3 (Trixie) on an AMD64 architecture. You should plan for at least **5–10 GB** of free disk space for dependencies and build artifacts.
+This repository has been built and tested on Debian 13.3 (Trixie) on an AMD64 architecture. You should plan for at least **5-10 GB** of free disk space for dependencies and build artifacts.
 
 #### Required Package List
 
 ```bash
-apt install curl git
+apt install curl git tar xz-utils make
 ```
 
 #### Install and Prepare Required Rust Version
@@ -55,6 +55,12 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-t
 ```
 
 For more information see this [GitHub Issue](https://github.com/rust-lang/rustup/issues/2882) and the [official installation instructions](https://rust-lang.github.io/rustup/installation/other.html).
+
+Add Rust to your `PATH`:
+
+```bash
+export PATH="$HOME/.cargo/bin:$PATH"
+```
 
 After installing, run the following commands to get the necessary targets:
 
@@ -127,6 +133,16 @@ The build script additionally bundles all compiled binaries into:
 
 target/bundle/
 
+with platform-specific filenames such as:
+
+- linux-x64.warp-packer
+- linux-aarch64.warp-packer
+- windows-x64.warp-packer.exe
+- windows-aarch64.warp-packer.exe
+- macos-x64.warp-packer
+- macos-aarch64.warp-packer
+- macos-universal.warp-packer
+
 #### Full Build Automation Script (Optional)
 
 If you'd like to automate the full setup from downloading dependencies to compiling `warp`, you can use the following build script.
@@ -146,7 +162,7 @@ chmod +x build.sh
 
 If no argument is passed, the script uses `$HOME`.
 
-This script installs:
+This script performs the following steps:
 
 * installs Rust via rustup
 * installs all required Rust compilation targets
@@ -189,6 +205,7 @@ Each platform-specific binary will be named as follows:
 * `windows-aarch64.warp-packer.exe`
 * `macos-x64.warp-packer`
 * `macos-aarch64.warp-packer`
+* `macos-universal.warp-packer`
 
 All files are available as artifacts for **90 days**.
 

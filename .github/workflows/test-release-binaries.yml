@@ -83,7 +83,16 @@ jobs:
         shell: bash
         run: chmod +x "${{ matrix.asset }}"
 
-      - name: Test binary
+      - name: Test binary (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
-          "${{ matrix.asset }}" --version
+          echo "Testing warp-packer binary on ${{ runner.os }}"
+          ./${{ matrix.asset }} --version
+
+      - name: Test binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Output "Testing warp-packer binary on Windows"
+          & ".\${{ matrix.asset }}" --version

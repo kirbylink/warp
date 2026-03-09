@@ -74,11 +74,17 @@ jobs:
           RELEASE_TAG="${{ needs.get-release-tag.outputs.tag }}"
           ASSET_NAME="${{ matrix.asset }}"
           
-          DOWNLOAD_URL=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${RELEASE_TAG} \
-            | jq -r ".assets[] | select(.name==\"${ASSET_NAME}\") | .browser_download_url")
+          echo "Fetching release info for tag: ${RELEASE_TAG}"
+          RESPONSE=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${RELEASE_TAG})
+          echo "API Response:"
+          echo "$RESPONSE" | jq '.' || echo "Failed to parse JSON"
+          
+          DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r ".assets[] | select(.name==\"${ASSET_NAME}\") | .browser_download_url")
           
           if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" = "null" ]; then
             echo "::error::Could not find asset ${ASSET_NAME} in release ${RELEASE_TAG}"
+            echo "Available assets:"
+            echo "$RESPONSE" | jq -r '.assets[].name'
             exit 1
           fi
           

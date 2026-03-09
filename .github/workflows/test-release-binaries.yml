@@ -14,7 +14,27 @@ permissions:
   contents: read
 
 jobs:
+  get-release-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - name: Get release tag
+        id: release
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.release.tag_name }}" ]; then
+            RELEASE_TAG="${{ github.event.release.tag_name }}"
+          elif [ -n "${{ inputs.release_tag }}" ]; then
+            RELEASE_TAG="${{ inputs.release_tag }}"
+          else
+            RELEASE_TAG=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name')
+          fi
+          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "Using release tag: ${RELEASE_TAG}"
+
   test-binaries:
+    needs: get-release-tag
     strategy:
       fail-fast: false
       matrix:
@@ -48,23 +68,10 @@ jobs:
     name: Test ${{ matrix.name }}
 
     steps:
-      - name: Get release tag
-        id: release
-        shell: bash
-        run: |
-          if [ -n "${{ github.event.release.tag_name }}" ]; then
-            RELEASE_TAG="${{ github.event.release.tag_name }}"
-          elif [ -n "${{ inputs.release_tag }}" ]; then
-            RELEASE_TAG="${{ inputs.release_tag }}"
-          else
-            RELEASE_TAG=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name')
-          fi
-          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
-
       - name: Download binary
         shell: bash
         run: |
-          RELEASE_TAG="${{ steps.release.outputs.tag }}"
+          RELEASE_TAG="${{ needs.get-release-tag.outputs.tag }}"
           ASSET_NAME="${{ matrix.asset }}"
           
           DOWNLOAD_URL=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${RELEASE_TAG} \

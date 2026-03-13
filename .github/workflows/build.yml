@@ -31,7 +31,7 @@ jobs:
             ext: ".exe"
             releaseDirectory: aarch64-pc-windows-gnullvm
           - name: macos-x64
-            runner: macos-13
+            runner: macos-15-intel
             target: ""
             ext: ""
             releaseDirectory: x86_64-apple-darwin
@@ -109,7 +109,7 @@ jobs:
             target: ""
             ext: ".exe"
           - name: macos-x64
-            runner: macos-13
+            runner: macos-15-intel
             target: ""
             ext: ""
           - name: macos-aarch64
@@ -180,6 +180,20 @@ jobs:
         run: |
           mkdir -p dist
           cp target/release/warp-packer${{ matrix.ext }} dist/${{ matrix.name }}.warp-packer${{ matrix.ext }}
+          
+      - name: Test warp-packer binary (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          echo "Testing warp-packer binary on ${{ runner.os }}"
+          ./dist/${{ matrix.name }}.warp-packer list
+      
+      - name: Test warp-packer binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Output "Testing warp-packer binary on Windows"
+          & ".\dist\${{ matrix.name }}.warp-packer${{ matrix.ext }}" list
 
       - uses: actions/upload-artifact@v4
         with:

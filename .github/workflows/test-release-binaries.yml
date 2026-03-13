@@ -1,0 +1,113 @@
+name: Test Release Binaries
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to test (e.g., v1.2.0 or v1.2.0-2025-11-01-SNAPSHOT)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  get-release-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - name: Get release tag
+        id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ github.event.release.tag_name }}" ]; then
+            RELEASE_TAG="${{ github.event.release.tag_name }}"
+          elif [ -n "${{ inputs.release_tag }}" ]; then
+            RELEASE_TAG="${{ inputs.release_tag }}"
+          else
+            RELEASE_TAG=$(curl -s -H "Authorization: token $GH_TOKEN" https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name')
+          fi
+          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "Using release tag: ${RELEASE_TAG}"
+
+  test-binaries:
+    needs: get-release-tag
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            runner: ubuntu-latest
+            asset: linux-x64.warp-packer
+          - name: linux-aarch64
+            runner: ubuntu-24.04-arm
+            asset: linux-aarch64.warp-packer
+          - name: windows-x64
+            runner: windows-latest
+            asset: windows-x64.warp-packer.exe
+          - name: windows-aarch64
+            runner: windows-11-arm
+            asset: windows-aarch64.warp-packer.exe
+          - name: macos-x64
+            runner: macos-15-intel
+            asset: macos-x64.warp-packer
+          - name: macos-aarch64
+            runner: macos-latest
+            asset: macos-aarch64.warp-packer
+          - name: macos-universal-intel
+            runner: macos-15-intel
+            asset: macos-universal.warp-packer
+          - name: macos-universal-arm
+            runner: macos-latest
+            asset: macos-universal.warp-packer
+
+    runs-on: ${{ matrix.runner }}
+    name: Test ${{ matrix.name }}
+
+    steps:
+      - name: Download binary
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_TAG="${{ needs.get-release-tag.outputs.tag }}"
+          ASSET_NAME="${{ matrix.asset }}"
+          
+          echo "Fetching release info for tag: ${RELEASE_TAG}"
+          RESPONSE=$(curl -s -H "Authorization: token $GH_TOKEN" https://api.github.com/repos/${{ github.repository }}/releases/tags/${RELEASE_TAG})
+          
+          DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r ".assets[] | select(.name==\"${ASSET_NAME}\") | .browser_download_url")
+          
+          if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" = "null" ]; then
+            echo "::error::Could not find asset ${ASSET_NAME} in release ${RELEASE_TAG}"
+            echo "Available assets:"
+            echo "$RESPONSE" | jq -r '.assets[].name'
+            exit 1
+          fi
+          
+          echo "Downloading ${ASSET_NAME}..."
+          curl -fL -o "$ASSET_NAME" "$DOWNLOAD_URL"
+
+      - name: Make executable (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: chmod +x "${{ matrix.asset }}"
+
+      - name: Test binary (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          echo "Testing warp-packer binary on ${{ runner.os }}"
+          ./${{ matrix.asset }} --version
+
+      - name: Test binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Output "Testing warp-packer binary on Windows"
+          & ".\${{ matrix.asset }}" --version

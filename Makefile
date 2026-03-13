@@ -3,56 +3,53 @@ all:
 
 build:
 	# --- Build all warp-runner binaries first ---
+	# --- Linux x86_64 (Compatible with Debian 10+, Ubuntu 18.04+) ---
+	cargo zigbuild -p warp-runner --release --target x86_64-unknown-linux-gnu.2.28
 
-	# Linux x86_64
-	cargo build -p warp-runner --release --target x86_64-unknown-linux-gnu
-	strip target/x86_64-unknown-linux-gnu/release/warp-runner
+	# --- Linux ARM64 (Compatible with Debian 10+, Ubuntu 18.04+) ---
+	cargo zigbuild -p warp-runner --release --target aarch64-unknown-linux-gnu.2.28
 
-	# Linux aarch64
-	cargo build -p warp-runner --release --target aarch64-unknown-linux-gnu
-	aarch64-linux-gnu-strip target/aarch64-unknown-linux-gnu/release/warp-runner
+	# --- macOS Intel (x86_64) ---
+	# No manual SDK or osxcross-strip required
+	cargo zigbuild -p warp-runner --release --target x86_64-apple-darwin
 
-	# macOS x86_64
-	cargo build -p warp-runner --release --target x86_64-apple-darwin
-	x86_64-apple-darwin20.4-strip target/x86_64-apple-darwin/release/warp-runner
+	# --- macOS Apple Silicon (ARM64) ---
+	cargo zigbuild -p warp-runner --release --target aarch64-apple-darwin
+	
+	# --- macOS Universal (Intel + ARM64 in one binary) ---
+	cargo zigbuild -p warp-runner --release --target universal2-apple-darwin
 
-	# macOS ARM64
-	cargo build -p warp-runner --release --target aarch64-apple-darwin
-	x86_64-apple-darwin20.4-strip target/aarch64-apple-darwin/release/warp-runner || true
+	# --- Windows x86_64 ---
+	# Using zigbuild here too removes the need for a local 'strip' command
+	cargo zigbuild -p warp-runner --release --target x86_64-pc-windows-gnu
 
-	# Windows x86_64
-	cargo build -p warp-runner --release --target x86_64-pc-windows-gnu
-	strip target/x86_64-pc-windows-gnu/release/warp-runner.exe
-
-	# Windows ARM64 (via zigbuild)
+	# --- Windows ARM64 ---
 	cargo zigbuild -p warp-runner --release --target aarch64-pc-windows-gnullvm
-	# No strip here - MSVC generates PDBs and stripping is not needed
 
 	# --- Build warp-packer after all warp-runner builds are complete ---
+	# --- Linux x86_64 (Compatible with Debian 10+, Ubuntu 18.04+) ---
+	cargo zigbuild -p warp-packer --release --target x86_64-unknown-linux-gnu.2.28
 
-	# Linux x86_64
-	cargo build -p warp-packer --release --target x86_64-unknown-linux-gnu
-	strip target/x86_64-unknown-linux-gnu/release/warp-packer
+	# --- Linux ARM64 (Compatible with Debian 10+, Ubuntu 18.04+) ---
+	cargo zigbuild -p warp-packer --release --target aarch64-unknown-linux-gnu.2.28
 
-	# Linux aarch64
-	cargo build -p warp-packer --release --target aarch64-unknown-linux-gnu
-	aarch64-linux-gnu-strip target/aarch64-unknown-linux-gnu/release/warp-packer
+	# --- macOS Intel (x86_64) ---
+	# No manual SDK or osxcross-strip required
+	cargo zigbuild -p warp-packer --release --target x86_64-apple-darwin
 
-	# macOS x86_64
-	cargo build -p warp-packer --release --target x86_64-apple-darwin
-	x86_64-apple-darwin20.4-strip target/x86_64-apple-darwin/release/warp-packer
+	# --- macOS Apple Silicon (ARM64) ---
+	# No manual SDK or osxcross-strip required
+	cargo zigbuild -p warp-packer --release --target aarch64-apple-darwin
+	
+	# --- macOS Universal (Intel + ARM64 in one binary) ---
+	cargo zigbuild -p warp-packer --release --target universal2-apple-darwin
 
-	# macOS ARM64
-	cargo build -p warp-packer --release --target aarch64-apple-darwin
-	x86_64-apple-darwin20.4-strip target/aarch64-apple-darwin/release/warp-packer || true
+	# --- Windows x86_64 ---
+	# Using zigbuild here too removes the need for a local 'strip' command
+	cargo zigbuild -p warp-packer --release --target x86_64-pc-windows-gnu
 
-	# Windows x86_64
-	cargo build -p warp-packer --release --target x86_64-pc-windows-gnu
-	strip target/x86_64-pc-windows-gnu/release/warp-packer.exe
-
-	# Windows ARM64 (via zigbuild)
+	# --- Windows ARM64 ---
 	cargo zigbuild -p warp-packer --release --target aarch64-pc-windows-gnullvm
-	# No strip here - MSVC generates PDBs and stripping is not needed
 
 clean:
 	cargo clean

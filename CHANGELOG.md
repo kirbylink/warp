@@ -7,12 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v1.1.1] - 2025-08-23
-### Fixed
-- Cache path structure corrected for Windows. In v1.1.0 the windows cache was `C:\Users\<user>\AppData\Local\warp\warp\data\packages` instead of `C:\Users\<user>\AppData\Local\warp\packages`
+## [v1.2.0] - 2026-03-07
+### Added
+- Building files with Ziglang and adding a universal file for MacOS
 
+## [v1.1.2] - 2026-03-07
+### Changed
+- Update dependencies
+
+### Fixed
+- Added code signature structure for MacOS
+- Update build process and documentation to fix MacOS aarch support
+- Update Apple runner in GitHub Workflow
+
+## [v1.1.1] - 2025-08-23
 ### Changed
 - Updated Rust dependencies to latest compatible versions
+
+### Fixed
+- Cache path structure corrected for Windows. In v1.1.0 the windows cache was `C:\Users\<user>\AppData\Local\warp\warp\data\packages` instead of `C:\Users\<user>\AppData\Local\warp\packages`
 
 ## [v1.1.0] - 2025-05-18
 ### Added
@@ -27,22 +40,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved and documented usage of the `build.sh` automation script for local builds
 
 ## [v1.0.0] - 2024-05-18
-### Changed
-- Changed the default invocation to `warp-packer pack <argument1> <argument2> ...`.
-
-For more details, see the [README](./README.md#changes-in-v100).
-
 ### Added
 - Support for native execution on aarch64-linux platforms, e.g., Raspberry Pi 4.
 - New options for `warp-packer`.
 - `BUILD.md` with instructions on how to compile warp-packer.
 - `INSTALL.md` with instructions on how to run the application on Linux, macOS, and Windows systems.
 
+### Changed
+- Changed the default invocation to `warp-packer pack <argument1> <argument2> ...`.
+
+For more details, see the [README](./README.md#changes-in-v100).
+
 ## [v0.1.0 - v0.3.0] - 2018-10-30
 ### Changed
 - For changes see origin repository: https://github.com/dgiagio/warp/releases
 
 [unreleased]: https://github.com/kirbylink/warp/compare/master...HEAD
+[v1.2.0]: https://github.com/kirbylink/warp/compare/v1.1.2...v1.2.0
+[v1.1.2]: https://github.com/kirbylink/warp/compare/v1.1.1...v1.1.2
 [v1.1.1]: https://github.com/kirbylink/warp/compare/v1.1.0...v1.1.1
 [v1.1.0]: https://github.com/kirbylink/warp/compare/v1.0.0...v1.1.0
 [v1.0.0]: https://github.com/kirbylink/warp/compare/v0.3.0...v1.0.0

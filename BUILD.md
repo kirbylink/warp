@@ -1,6 +1,6 @@
 # Build Instructions
 
-Instructions for building this repository on Linux.
+BUILD.md containing instructions on how to build warp-packer.
 
 ## Table of Contents
 
@@ -12,9 +12,8 @@ Instructions for building this repository on Linux.
     * [Linux Development Environment Requirements](#linux-development-environment-requirements)
       * [Required Package List](#required-package-list)
       * [Install and Prepare Required Rust Version](#install-and-prepare-required-rust-version)
-      * [Required macOS SDK](#required-macos-sdk)
-        * [Build and Use macOS SDK from Xcode](#build-and-use-macos-sdk-from-xcode)
-        * [Prepare Cross-Compilation for Windows ARM64](#prepare-cross-compilation-for-windows-arm64)
+      * [Install cargo-zigbuild](#install-cargo-zigbuild)
+      * [Install Zig - the compiler engine](#install-zig-the-compiler-engine)
       * [Build the Project](#build-the-project)
       * [Full Build Automation Script (Optional)](#full-build-automation-script-optional)
   * [Building using GitHub Actions](#building-using-github-actions)
@@ -31,17 +30,17 @@ This repository contains the source code necessary to build warp-packer for diff
 
 ### Linux Development Environment Requirements
 
-This repository has been built and tested on Debian 12.12 (Bookworm) on an AMD64 architecture. You should plan for at least **15 GB** of free disk space for all dependencies and build artifacts.
+This repository has been built and tested on Debian 13.3 (Trixie) on an AMD64 architecture. You should plan for at least **5-10 GB** of free disk space for dependencies and build artifacts.
 
 #### Required Package List
 
 ```bash
-apt install curl maven clang cmake libssl-dev zlib1g-dev liblzma-dev libbz2-dev gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64-win32 git llvm lld
+apt install curl git tar xz-utils make
 ```
 
 #### Install and Prepare Required Rust Version
 
-This repository has been built and tested with Rust version 1.91.
+This repository has been built and tested with Rust version 1.93.1.
 
 To install the newest version, run the following command:
 
@@ -52,10 +51,16 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 If a newer version doesn't work, a specific version can be installed with the following command:
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.91.0
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.93.1
 ```
 
 For more information see this [GitHub Issue](https://github.com/rust-lang/rustup/issues/2882) and the [official installation instructions](https://rust-lang.github.io/rustup/installation/other.html).
+
+Add Rust to your `PATH`:
+
+```bash
+export PATH="$HOME/.cargo/bin:$PATH"
+```
 
 After installing, run the following commands to get the necessary targets:
 
@@ -67,96 +72,33 @@ rustup target add x86_64-pc-windows-gnu
 rustup target add aarch64-pc-windows-gnullvm
 ```
 
-#### Required macOS SDK
+#### Install cargo-zigbuild
 
-To build warp-packer for the target `x86_64-apple-darwin`, a macOS SDK is needed. The repository has been built and tested with `MacOSX11.3.sdk`.
+This project uses `cargo-zigbuild` to simplify cross-compilation using the Zig compiler.
 
-There are several GitHub repositories available that contain different SDK versions, but they all seem to miss the header files. So it is recommended to download it from Apple's website.
-
-The macOS SDK is integrated into Xcode and Command Line Tools for Xcode. This repository has been built and tested with Command Line Tools for Xcode version 12.5.1 (`Command_Line_Tools_for_Xcode_12.5.1.dmg`).
-
-A free Apple account is needed to download the Command Line tools.
-
-1. Go to: [https://developer.apple.com/account/](https://developer.apple.com/account/) and log in.
-2. Then visit: [https://developer.apple.com/download/more/](https://developer.apple.com/download/more/)
-3. Search for: `Command Line Tools for Xcode 12.5.1`
-
-The direct download link may change, but as of this writing it is:
-
-```
-https://download.developer.apple.com/Developer_Tools/Command_Line_Tools_for_Xcode_12.5.1/Command_Line_Tools_for_Xcode_12.5.1.dmg
-```
-
-The resulting Clang and AR tools (e.g. `aarch64-apple-darwin20.4-clang` and `aarch64-apple-darwin20.4-ar`) must be referenced in the `.cargo/config.toml` file accordingly.
-
-> ⚠️ **Important:** The version `Command Line Tools for Xcode 12.5.1` must be used exactly as described. Using a different version will change the internal SDK version (e.g. `MacOSX11.3.sdk`) and toolchain prefix (e.g. `aarch64-apple-darwin20.4-clang`), which in turn requires manual adjustments to both the `Makefile` and `.cargo/config.toml`. This setup has been tested and validated only with version 12.5.1.
-
-##### Build and Use macOS SDK from Command Line Tools for Xcode
-
-To build and use the macOS SDK from Xcode, [osxcross](https://github.com/tpoechtrager/osxcross) will be used.
-
-Download osxcross:
-
-```bash
-git clone https://github.com/tpoechtrager/osxcross.git
-```
-
-Extract the macOS SDK from Command Line Tools for Xcode:
-
-```bash
-<path/to>/osxcross/tools/gen_sdk_package_tools_dmg.sh <path/to>/Command_Line_Tools_for_Xcode_12.5.1.dmg
-```
-
-Copy or move only the SDK `MacOSX11.3.sdk` from `<path/to>/osxcross/` into the `<path/to>/osxcross/tarballs/` directory.
-You may remove older or conflicting SDKs like `10.15` or `11` to avoid issues.
-
-Run the build script to create the macOS cross toolchain:
-
-```bash
-UNATTENDED=yes OSX_VERSION_MIN=11 SDK_VERSION=11.3 <path/to>/osxcross/build.sh
-```
-
-After that, add the `target/bin` folder to your `PATH` environment variable:
-
-```bash
-export PATH="<path/to>/osxcross/target/bin:$PATH"
-```
-
-To cross-compile with the osxcross toolchain, make sure your `.cargo/config.toml` includes entries like this (adjust paths if needed):
-
-```toml
-[target.x86_64-apple-darwin]
-linker = "x86_64-apple-darwin20.4-clang"
-ar = "x86_64-apple-darwin20.4-ar"
-
-[target.aarch64-apple-darwin]
-linker = "aarch64-apple-darwin20.4-clang"
-ar = "aarch64-apple-darwin20.4-ar"
-```
-
-These toolchain names depend on the SDK version and osxcross build result. If you use a different SDK, the version suffix (like 20.4) will likely change.
-
-##### Prepare Cross-Compilation for Windows ARM64
-
-To compile for Windows ARM64 (`aarch64-pc-windows-gnullvm`), the [`cargo-zigbuild`](https://github.com/messense/cargo-zigbuild) tool is used. It integrates the Zig compiler to simplify cross-compilation.
-
-Install `cargo-zigbuild`:
+Install it with:
 
 ```bash
 cargo install cargo-zigbuild
 ```
 
-Download and unpack the Zig compiler (tested with version 0.14.0):
+#### Install Zig - the compiler engine
+
+Download and unpack the Zig compiler (tested with version 0.15.2):
 
 ```bash
 mkdir -p ~/.local/zig
 cd ~/.local/zig
-curl -LO https://ziglang.org/download/0.14.0/zig-linux-x86_64-0.14.0.tar.xz
-tar -xf zig-linux-x86_64-0.14.0.tar.xz
-export PATH="$HOME/.local/zig/zig-linux-x86_64-0.14.0:$PATH"
+curl -LO https://ziglang.org/download/0.15.2/zig-x86_64-linux-0.15.2.tar.xz
+tar -xf zig-x86_64-linux-0.15.2.tar.xz
+rm zig-x86_64-linux-0.15.2.tar.xz
 ```
 
-This target uses the LLVM-based ABI and is officially supported by Rust. It is currently the most reliable option for producing ARM64 Windows binaries on Linux.
+Add Zig to your `PATH`:
+
+```bash
+export PATH="$PATH:$HOME/.local/zig/zig-x86_64-linux-0.15.2"
+```
 
 #### Build the Project
 
@@ -173,7 +115,7 @@ And within the project directory, run:
 make
 ```
 
-to start the build.
+to build all `warp-packer` binaries.
 
 The compiled warp-packer files are in the folder:
 
@@ -186,6 +128,20 @@ e.g.
 ```bash
 <path/to>/warp/target/aarch64-unknown-linux-gnu/release/warp-packer
 ```
+
+The build script additionally bundles all compiled binaries into:
+
+target/bundle/
+
+with platform-specific filenames such as:
+
+- linux-x64.warp-packer
+- linux-aarch64.warp-packer
+- windows-x64.warp-packer.exe
+- windows-aarch64.warp-packer.exe
+- macos-x64.warp-packer
+- macos-aarch64.warp-packer
+- macos-universal.warp-packer
 
 #### Full Build Automation Script (Optional)
 
@@ -206,20 +162,19 @@ chmod +x build.sh
 
 If no argument is passed, the script uses `$HOME`.
 
-4. You still need to provide the path to the downloaded `Command_Line_Tools_for_Xcode_12.5.1.dmg` inside the script.
+This script performs the following steps:
 
-This script installs:
-
-* Rust with `rustup` and the correct toolchain
-* Required Rust targets (see above)
-* `cargo-zigbuild`
-* Zig 0.14.0
-* osxcross (with `MacOSX11.3.sdk` extracted and built)
-* warp repository and compiles it with `make`
+* installs Rust via rustup
+* installs all required Rust compilation targets
+* installs cargo-zigbuild
+* downloads and configures Zig
+* clones the warp repository
+* builds warp for all supported targets
+* bundles the resulting warp-packer binaries
 
 > You can modify the script to suit your environment. It is designed to work with user privileges (except for `apt`).
 >
-> **Note:** You should only run the script once to set everything up. Afterward, you only need to run `make` in the cloned warp repository to rebuild it. However, the paths to the tools (like `osxcross`, `zig`, or the SDK) still need to be correctly set in your environment (e.g. via `PATH` or `.cargo/config.toml`).
+> The script can safely be executed multiple times. It will only install missing dependencies and then rebuild the project.
 
 ## Building using GitHub Actions
 
@@ -232,10 +187,11 @@ If you prefer not to install all platform-specific dependencies locally, this re
 
 You can trigger a full build of all binaries using GitHub Actions - **without creating a release**:
 
-1. Open the **["Actions" tab](../../actions)** of your repository on GitHub.
-2. Select the **"Build warp-runner and warp-packer"** workflow.
-3. Click the **"Run workflow"** button and choose the desired branch.
-4. Wait for the workflow to complete.
+1. Fork the project
+2. Open the **["Actions" tab](../../actions)** of your repository on GitHub.
+3. Select the **"Build warp-runner and warp-packer"** workflow.
+4. Click the **"Run workflow"** button and choose the desired branch.
+5. Wait for the workflow to complete.
 
 Once finished, you can download all generated binaries from the **Artifacts** section at the bottom of the workflow run.
 
@@ -249,6 +205,7 @@ Each platform-specific binary will be named as follows:
 * `windows-aarch64.warp-packer.exe`
 * `macos-x64.warp-packer`
 * `macos-aarch64.warp-packer`
+* `macos-universal.warp-packer`
 
 All files are available as artifacts for **90 days**.
 

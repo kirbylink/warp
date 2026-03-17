@@ -132,5 +132,5 @@ fn main() -> Result<()> {
         extract(&self_path, &cache_path)?;
     }
 
-    process::exit(executor::execute(&target_path)?);
+    process::exit(executor::execute(&target_path, args.hidden)?);
 }

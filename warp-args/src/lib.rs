@@ -7,10 +7,13 @@ pub const WARP_ARGS_MAGIC: &[u8] = b"DR1PWsJsM6KxNbng9Y38";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Args {
-    pub target_file_name: PathBuf,
+    pub target_file_name: String,
     pub prefix: Option<PathBuf>,
     pub uid: Option<String>,
     pub clean: bool,
+
+    #[serde(default)]
+    pub hidden: bool,
 }
 
 pub fn bincode_options() -> impl bincode::Options {

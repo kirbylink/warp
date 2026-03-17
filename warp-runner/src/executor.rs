@@ -29,7 +29,7 @@ fn ensure_executable(target: &Path) {
 }
 
 #[cfg(target_family = "unix")]
-fn do_execute(target: &Path, args: &[String], _hidden: bool) -> io::Result<i32> 
+fn do_execute(target: &Path, args: &[String], _hidden: bool) -> io::Result<i32> {
     ensure_executable(target);
 
     Ok(Command::new(target)

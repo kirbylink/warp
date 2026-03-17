@@ -15,12 +15,12 @@ mkdir -p "$BASE_DIR"
 rm -rf "$BASE_DIR/warp"
 
 # === 1. Install Rust (user-level) ===
-if ! command -v rustup >/dev/null 2>&1; then
+if ! command -v $BASE_DIR/.cargo/bin/rustup >/dev/null 2>&1; then
   echo "Installing rustup..."
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain=1.93.1 -y
 fi
 
-export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="$BASE_DIR/.cargo/bin:$PATH"
 
 echo "Ensuring required Rust targets..."
 rustup target add aarch64-unknown-linux-gnu

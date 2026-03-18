@@ -32,6 +32,17 @@ This fork focuses on reliable multi-platform builds using **Rust**, **Zig**, and
 
 ---
 
+## Changes in v1.3.0
+
+### New CLI Option
+* `--hidden`: Prevent the command prompt (console) from flashing when starting an application (Windows).
+
+### Improvements
+* **Enhanced Silent Mode:** Combined with batch scripts, the runner now ensures that no terminal window remains visible in the background.
+* **Backward Compatible Metadata:** Updated the internal communication between packer and runner to be more robust for future updates.
+
+---
+
 ## Changes in v1.2.0
 
 ### Improvements

@@ -1,6 +1,7 @@
 # warp
 
 ![GitHub Release](https://img.shields.io/github/v/release/kirbylink/warp)
+![GitHub Downloads](https://img.shields.io/github/downloads/kirbylink/warp/latest)
 ![GitHub Downloads](https://img.shields.io/github/downloads/kirbylink/warp/total)
 ![License](https://img.shields.io/github/license/kirbylink/warp)
 

@@ -1,3 +1,4 @@
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 use anyhow::Context;
 use anyhow::{anyhow, Result};
 use log::{trace, Level};
@@ -131,5 +132,5 @@ fn main() -> Result<()> {
         extract(&self_path, &cache_path)?;
     }
 
-    process::exit(executor::execute(&target_path)?);
+    process::exit(executor::execute(&target_path, args.hidden)?);
 }

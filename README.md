@@ -12,6 +12,7 @@ This fork focuses on reliable multi-platform builds using **Rust**, **Zig**, and
 
 ## Table of Contents
 
+- [Changes in v1.3.0](#changes-in-v130)
 - [Changes in v1.2.0](#changes-in-v120)
 - [Changes in v1.0.0](#changes-in-v100)
 - [Prebuilt Binaries](#prebuilt-binaries)

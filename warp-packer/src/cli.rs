@@ -44,4 +44,8 @@ pub struct PackArgs {
     /// When using unique-id, do not look for and clean obsolete versions with the same prefix from cache
     #[arg(short = 'n', long = "no-clean", action = clap::ArgAction::SetFalse)]
     pub clean: bool,
+
+    /// Hide the console window on Windows (useful for GUI applications)
+    #[arg(long, default_value_t = false)]
+    pub hidden: bool,
 }

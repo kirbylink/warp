@@ -31,7 +31,7 @@ lazy_static! {
         m.insert(
             "macos-x64",
             include_bytes!("../../target/x86_64-apple-darwin/release/warp-runner").as_slice(),
-		);
+        );
         m.insert(
             "macos-aarch64",
             include_bytes!("../../target/aarch64-apple-darwin/release/warp-runner").as_slice(),
@@ -134,10 +134,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     append_args(
         &mut output,
         &Args {
-            target_file_name: args.exec,
+            target_file_name: args.exec.to_string_lossy().into_owned(),
             prefix: args.prefix,
             uid: args.unique_id.then(|| format!("{}", Uuid::new_v4())),
             clean: args.clean,
+            hidden: args.hidden,
         },
     );
 

@@ -1,6 +1,7 @@
 # warp
 
 ![GitHub Release](https://img.shields.io/github/v/release/kirbylink/warp)
+![GitHub Downloads](https://img.shields.io/github/downloads/kirbylink/warp/latest/total)
 ![GitHub Downloads](https://img.shields.io/github/downloads/kirbylink/warp/total)
 ![License](https://img.shields.io/github/license/kirbylink/warp)
 
@@ -12,6 +13,7 @@ This fork focuses on reliable multi-platform builds using **Rust**, **Zig**, and
 
 ## Table of Contents
 
+- [Changes in v1.3.0](#changes-in-v130)
 - [Changes in v1.2.0](#changes-in-v120)
 - [Changes in v1.0.0](#changes-in-v100)
 - [Prebuilt Binaries](#prebuilt-binaries)
@@ -29,6 +31,17 @@ This fork focuses on reliable multi-platform builds using **Rust**, **Zig**, and
 - [macOS Security Considerations](#macos-security-considerations)
 - [Authors](#authors)
 - [License](#license)
+
+---
+
+## Changes in v1.3.0
+
+### New CLI Option
+* `--hidden`: Prevent the command prompt (console) from flashing when starting an application (Windows).
+
+### Improvements
+* **Enhanced Silent Mode:** Combined with batch scripts, the runner now ensures that no terminal window remains visible in the background.
+* **Backward Compatible Metadata:** Updated the internal communication between packer and runner to be more robust for future updates.
 
 ---
 

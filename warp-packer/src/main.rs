@@ -42,7 +42,8 @@ lazy_static! {
         );
         m.insert(
             "windows-aarch64",
-            include_bytes!("../../target/aarch64-pc-windows-gnullvm/release/warp-runner.exe").as_slice(),
+            include_bytes!("../../target/aarch64-pc-windows-gnullvm/release/warp-runner.exe")
+                .as_slice(),
         );
         m
     };
@@ -60,6 +61,7 @@ macro_rules! bail {
 fn append_tgz(f: &mut impl io::Write, dir: &Path) -> io::Result<()> {
     let gz = GzEncoder::new(f, Compression::best());
     let mut tar = tar::Builder::new(gz);
+    tar.sparse(false);
     tar.follow_symlinks(false);
     tar.append_dir_all(".", dir)
 }

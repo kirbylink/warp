@@ -57,6 +57,10 @@ jobs:
             packer: macos-aarch64.warp-packer
             arch: macos-aarch64
             ext: ""
+          - os: macos-15-intel
+            packer: macos-x64.warp-packer
+            arch: macos-x64
+            ext: ""
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/download-artifact@v4

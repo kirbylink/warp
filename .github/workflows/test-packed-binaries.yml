@@ -84,31 +84,31 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            ./target/release/warp-packer.exe pack --arch windows-x64 --input-dir testapp --exec bin/myapp.bat --output testapp.exe
+            ./target/release/warp-packer.exe pack --arch windows-x64 --input-dir testapp --exec bin/myapp.bat --output packed-app.exe
           elif [ "$RUNNER_OS" = "macOS" ]; then
-            ./target/release/warp-packer pack --arch macos-aarch64 --input-dir testapp --exec bin/myapp --output testapp
+            ./target/release/warp-packer pack --arch macos-aarch64 --input-dir testapp --exec bin/myapp --output packed-app
           else
-            ./target/release/warp-packer pack --arch linux-x64 --input-dir testapp --exec bin/myapp --output testapp
+            ./target/release/warp-packer pack --arch linux-x64 --input-dir testapp --exec bin/myapp --output packed-app
           fi
 
       - name: First run (extract + execute)
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            ./testapp.exe ci-arg-1
+            ./packed-app.exe ci-arg-1
           else
-            ./testapp ci-arg-1
+            ./packed-app ci-arg-1
           fi
 
       - name: Verify extracted cache
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            CACHE="$LOCALAPPDATA/warp/packages/testapp.exe/static"
+            CACHE="$LOCALAPPDATA/warp/packages/packed-app.exe/static"
           elif [ "$RUNNER_OS" = "macOS" ]; then
-            CACHE="$HOME/Library/Application Support/warp/packages/testapp/static"
+            CACHE="$HOME/Library/Application Support/warp/packages/packed-app/static"
           else
-            CACHE="$HOME/.local/share/warp/packages/testapp/static"
+            CACHE="$HOME/.local/share/warp/packages/packed-app/static"
           fi
           cmp testapp/lib/big.bin "$CACHE/lib/big.bin"
           echo "cache matches source"
@@ -117,23 +117,33 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            ./testapp.exe warm
+            ./packed-app.exe warm
           else
-            ./testapp warm
+            ./packed-app warm
           fi
 
       - name: Corrupted binary must be rejected
         shell: bash
         run: |
+          # Only the new zstd-chunk layout (PR #9) carries the 44-byte
+          # footer with the WARP-PAYLOAD magic. The old tar.gz layout has
+          # no checksum at all, so corruption there is not reliably
+          # detected – skip the test in that case.
+          BINARY=packed-app
+          [ "$RUNNER_OS" = "Windows" ] && BINARY=packed-app.exe
+          if ! grep -qa WARP-PAYLOAD "$BINARY"; then
+            echo "Old payload layout (tar.gz) detected - skipping corruption test"
+            exit 0
+          fi
           if [ "$RUNNER_OS" = "Windows" ]; then
-            cp testapp.exe testapp-corrupt.exe
-            powershell -NoProfile -Command '$b=[IO.File]::ReadAllBytes("testapp-corrupt.exe"); $i=$b.Length/2; $b[$i]=$b[$i] -bxor 0xFF; [IO.File]::WriteAllBytes("testapp-corrupt.exe",$b)'
-            ./testapp-corrupt.exe should-fail && exit 1 || echo "corrupt binary rejected as expected"
+            cp packed-app.exe packed-app-corrupt.exe
+            powershell -NoProfile -Command '$b=[IO.File]::ReadAllBytes("packed-app-corrupt.exe"); $i=$b.Length/2; $b[$i]=$b[$i] -bxor 0xFF; [IO.File]::WriteAllBytes("packed-app-corrupt.exe",$b)'
+            ./packed-app-corrupt.exe should-fail && exit 1 || echo "corrupt binary rejected as expected"
           else
-            cp testapp testapp-corrupt
+            cp packed-app packed-app-corrupt
             python3 -c "
-          data = bytearray(open('testapp-corrupt','rb').read())
+          data = bytearray(open('packed-app-corrupt','rb').read())
           data[len(data)//2] ^= 0xff
-          open('testapp-corrupt','wb').write(data)"
-            ./testapp-corrupt should-fail && exit 1 || echo "corrupt binary rejected as expected"
+          open('packed-app-corrupt','wb').write(data)"
+            ./packed-app-corrupt should-fail && exit 1 || echo "corrupt binary rejected as expected"
           fi

@@ -7,6 +7,9 @@ jobs:
   build-runner:
     name: Build warp-runner for ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
+    env:
+      CC_x86_64_unknown_linux_musl: musl-gcc
+      CC_aarch64_unknown_linux_musl: musl-gcc
     strategy:
       matrix:
         include:
@@ -60,6 +63,10 @@ jobs:
         if: matrix.target != ''
         run: rustup target add ${{ matrix.target }}
 
+      - name: Install musl C toolchain (if needed)
+        if: contains(matrix.target, 'musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
       - name: Build warp-runner (with target)
         if: matrix.target != ''
         run: cd warp-runner && cargo build --release --target ${{ matrix.target }}
@@ -89,6 +96,9 @@ jobs:
     name: Build warp-packer for ${{ matrix.name }}
     needs: build-runner
     runs-on: ${{ matrix.runner }}
+    env:
+      CC_x86_64_unknown_linux_musl: musl-gcc
+      CC_aarch64_unknown_linux_musl: musl-gcc
     strategy:
       matrix:
         include:
@@ -160,6 +170,10 @@ jobs:
       - name: Install target (if needed)
         if: matrix.target != ''
         run: rustup target add ${{ matrix.target }}
+
+      - name: Install musl C toolchain (if needed)
+        if: contains(matrix.target, 'musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
 
       - name: Build warp-packer (with target)
         if: matrix.target != ''

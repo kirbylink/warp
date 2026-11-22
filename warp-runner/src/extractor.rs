@@ -1,120 +1,189 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use bincode::Options;
-use flate2::read::GzDecoder;
 use log::trace;
-use memmem::{Searcher, TwoWaySearcher};
-use std::fs::File;
-use std::io;
-use std::io::{BufReader, Read, Seek, SeekFrom};
+use rayon::prelude::*;
+use std::fs::{self, File, OpenOptions};
+use std::io::{self, Read, Seek, SeekFrom};
 use std::path::Path;
-use tar::Archive;
-use warp_args::{bincode_options, Args, WARP_ARGS_MAGIC};
+use warp_args::{
+    bincode_options, index_bincode_options, Args, Chunk, Entry, EntryKind, Footer, FOOTER_LEN,
+};
 
-struct FileSearcher<'a> {
-    buf_reader: BufReader<File>,
-    searcher: TwoWaySearcher<'a>,
-    offs: usize,
-}
-
-impl<'a> FileSearcher<'a> {
-    fn new(path: &'a Path, magic: &'a [u8]) -> io::Result<FileSearcher<'a>> {
-        let file = File::open(path)?;
-        Ok(FileSearcher {
-            buf_reader: BufReader::new(file),
-            searcher: TwoWaySearcher::new(magic),
-            offs: 0,
-        })
+fn read_footer(file: &mut File) -> Result<Footer> {
+    if file.metadata()?.len() < FOOTER_LEN as u64 {
+        bail!("binary is too small to contain a payload");
     }
+    file.seek(SeekFrom::End(-(FOOTER_LEN as i64)))?;
+    let mut bytes = [0u8; FOOTER_LEN];
+    file.read_exact(&mut bytes)?;
+    Footer::from_bytes(&bytes).ok_or_else(|| anyhow!("no payload found"))
 }
 
-impl<'a> Iterator for FileSearcher<'a> {
-    type Item = io::Result<usize>;
-
-    fn next(&mut self) -> Option<io::Result<usize>> {
-        let mut buf = [0; 32 * 1024];
-        let ret;
-
-        match self.buf_reader.seek(SeekFrom::Start(self.offs as u64)) {
-            Ok(_) => {}
-            Err(e) => return Some(Err(e)),
-        }
-
-        loop {
-            match self.buf_reader.read(&mut buf[..]) {
-                Ok(0) => {
-                    ret = None;
-                    break;
-                }
-                Ok(n) => {
-                    match self.searcher.search_in(&buf) {
-                        Some(pos) => {
-                            self.offs += pos;
-                            ret = Some(Ok(self.offs));
-                            self.offs += 1; // one past the match so we can try again if necessary
-                            break;
-                        }
-                        None => self.offs += n,
-                    }
-                }
-                Err(e) => {
-                    ret = Some(Err(e));
-                    break;
-                }
-            }
-        }
-        ret
+fn read_section(file: &mut File, offset: u64, len: u64) -> Result<Vec<u8>> {
+    let file_len = file.metadata()?.len();
+    if offset.checked_add(len).is_none_or(|end| end > file_len) {
+        bail!("payload section out of bounds");
     }
-}
-
-const GZIP_MAGIC: &[u8] = b"\x1f\x8b\x08";
-
-pub fn extract_to(src: &Path, dst: &Path) -> Result<()> {
-    FileSearcher::new(src, GZIP_MAGIC)
-        .context("failed searching own binary")?
-        .map(Result::unwrap)
-        .find(|offs| extract_at_offset(src, *offs, dst).unwrap())
-        .ok_or_else(|| anyhow!("No tarball found inside binary file {}", src.display()))
-        .map(|offs| {
-            trace!(
-                "tarball found at offset {} was extracted successfully",
-                offs
-            );
-        })
-}
-
-fn extract_at_offset(src: &Path, offs: usize, dst: &Path) -> Result<bool> {
-    let mut f = File::open(src)
-        .with_context(|| format!("Failed to open file to extract from: {}", src.display()))?;
-    f.seek(SeekFrom::Start(offs as u64))
-        .with_context(|| format!("Failed to read file to extract from: {}", src.display()))?;
-
-    let gz = GzDecoder::new(f);
-    let mut tar = Archive::new(gz);
-    Ok(tar.unpack(dst).is_ok())
+    file.seek(SeekFrom::Start(offset))?;
+    let mut bytes = vec![0u8; len as usize];
+    file.read_exact(&mut bytes)?;
+    Ok(bytes)
 }
 
 pub fn get_args(src: &Path) -> Result<Args> {
-    FileSearcher::new(src, WARP_ARGS_MAGIC)
-        .context("failed searching own binary")?
-        .map(Result::unwrap)
-        .find_map(|offs| {
-            Some((
-                offs,
-                extract_args_at_offset(src, offs + WARP_ARGS_MAGIC.len()).unwrap()?,
-            ))
-        })
-        .ok_or_else(|| anyhow!("No arguments found inside binary file {}", src.display()))
-        .map(|(offs, args)| {
-            trace!("args found at offset {} was extracted successfully", offs);
-            args
-        })
+    let mut file = File::open(src)
+        .with_context(|| format!("Failed to open file to extract from: {}", src.display()))?;
+    let footer = read_footer(&mut file)?;
+    trace!("footer={:?}", footer);
+    let bytes = read_section(&mut file, footer.args_offset, footer.args_len)?;
+    Ok(bincode_options().deserialize(&bytes)?)
 }
 
-fn extract_args_at_offset(src: &Path, offs: usize) -> Result<Option<Args>> {
-    let mut f = File::open(src)
+pub fn extract_to(src: &Path, dst: &Path) -> Result<()> {
+    let mut file = File::open(src)
         .with_context(|| format!("Failed to open file to extract from: {}", src.display()))?;
-    f.seek(SeekFrom::Start(offs as u64))
-        .with_context(|| format!("Failed to read file to extract from: {}", src.display()))?;
+    let footer = read_footer(&mut file)?;
+    let index = read_section(&mut file, footer.index_offset, footer.index_len)?;
+    let entries: Vec<Entry> = index_bincode_options().deserialize(&index)?;
 
-    Ok(bincode_options().deserialize_from(f).ok())
+    fs::create_dir_all(dst)?;
+    for entry in &entries {
+        if let EntryKind::Dir = entry.kind {
+            fs::create_dir_all(dst.join(&entry.path))?;
+        }
+    }
+
+    let files: Vec<(&Entry, u64, &[Chunk])> = entries
+        .iter()
+        .filter_map(|entry| match &entry.kind {
+            EntryKind::File { len, chunks } => Some((entry, *len, chunks.as_slice())),
+            _ => None,
+        })
+        .collect();
+    let handles = files
+        .par_iter()
+        .map(|(entry, len, _)| create_file(&dst.join(&entry.path), entry.mode, *len))
+        .collect::<Result<Vec<_>>>()?;
+
+    let mut tasks = Vec::new();
+    for (handle, (_, _, chunks)) in handles.iter().zip(&files) {
+        let mut pos = 0u64;
+        for chunk in chunks.iter() {
+            tasks.push((handle, pos, chunk));
+            pos += chunk.len as u64;
+        }
+    }
+    tasks.par_iter().try_for_each_init(
+        || (Vec::new(), Vec::new()),
+        |(compressed, buf): &mut (Vec<u8>, Vec<u8>), &(handle, pos, chunk)| -> Result<()> {
+            let compressed_len = chunk.compressed_len as usize;
+            if compressed.len() < compressed_len {
+                compressed.resize(compressed_len, 0);
+            }
+            read_at(&file, &mut compressed[..compressed_len], chunk.offset)?;
+            let len = chunk.len as usize;
+            if buf.len() < len {
+                buf.resize(len, 0);
+            }
+            if zstd::bulk::decompress_to_buffer(&compressed[..compressed_len], &mut buf[..len])?
+                != len
+            {
+                bail!("corrupt chunk");
+            }
+            write_at(handle, &buf[..len], pos)?;
+            Ok(())
+        },
+    )?;
+
+    for entry in &entries {
+        if let EntryKind::Symlink { target } = &entry.kind {
+            create_symlink(target, &dst.join(&entry.path))?;
+        }
+    }
+    trace!("extracted {} entries", entries.len());
+    Ok(())
+}
+
+#[cfg(target_family = "unix")]
+fn create_file(path: &Path, mode: u32, len: u64) -> Result<File> {
+    use std::os::unix::fs::OpenOptionsExt;
+
+    let file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(mode)
+        .open(path)
+        .with_context(|| format!("Failed to create {}", path.display()))?;
+    file.set_len(len)?;
+    Ok(file)
+}
+
+#[cfg(target_family = "windows")]
+fn create_file(path: &Path, _mode: u32, len: u64) -> Result<File> {
+    let file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .with_context(|| format!("Failed to create {}", path.display()))?;
+    file.set_len(len)?;
+    Ok(file)
+}
+
+#[cfg(target_family = "unix")]
+fn read_at(file: &File, buf: &mut [u8], offset: u64) -> io::Result<()> {
+    use std::os::unix::fs::FileExt;
+
+    file.read_exact_at(buf, offset)
+}
+
+#[cfg(target_family = "windows")]
+fn read_at(file: &File, mut buf: &mut [u8], mut offset: u64) -> io::Result<()> {
+    use std::os::windows::fs::FileExt;
+
+    while !buf.is_empty() {
+        let n = file.seek_read(buf, offset)?;
+        if n == 0 {
+            return Err(io::ErrorKind::UnexpectedEof.into());
+        }
+        buf = &mut std::mem::take(&mut buf)[n..];
+        offset += n as u64;
+    }
+    Ok(())
+}
+
+#[cfg(target_family = "unix")]
+fn write_at(file: &File, buf: &[u8], offset: u64) -> io::Result<()> {
+    use std::os::unix::fs::FileExt;
+
+    file.write_all_at(buf, offset)
+}
+
+#[cfg(target_family = "windows")]
+fn write_at(file: &File, mut buf: &[u8], mut offset: u64) -> io::Result<()> {
+    use std::os::windows::fs::FileExt;
+
+    while !buf.is_empty() {
+        let n = file.seek_write(buf, offset)?;
+        if n == 0 {
+            return Err(io::ErrorKind::WriteZero.into());
+        }
+        buf = &buf[n..];
+        offset += n as u64;
+    }
+    Ok(())
+}
+
+#[cfg(target_family = "unix")]
+fn create_symlink(target: &str, link: &Path) -> io::Result<()> {
+    std::os::unix::fs::symlink(target, link)
+}
+
+#[cfg(target_family = "windows")]
+fn create_symlink(target: &str, link: &Path) -> io::Result<()> {
+    let resolved = link.parent().map(|parent| parent.join(target));
+    if resolved.is_some_and(|path| path.is_dir()) {
+        std::os::windows::fs::symlink_dir(target, link)
+    } else {
+        std::os::windows::fs::symlink_file(target, link)
+    }
 }

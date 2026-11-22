@@ -4,6 +4,11 @@ set -euo pipefail
 # === TARGET DIRECTORY (default: $HOME) ===
 BASE_DIR="${1:-$HOME}"
 
+# Optional: build an existing checkout instead of cloning master.
+# Used by CI to test the current working tree (a PR branch).
+# Usage: build.sh [BASE_DIR] [WARP_SOURCE_DIR]
+WARP_SOURCE="${2:-}"
+
 ZIG_VERSION="0.15.2"
 ZIG_DIR="$BASE_DIR/.local/zig"
 ZIG_INSTALL_DIR="$ZIG_DIR/zig-x86_64-linux-$ZIG_VERSION"
@@ -21,6 +26,11 @@ if ! command -v $BASE_DIR/.cargo/bin/rustup >/dev/null 2>&1; then
 fi
 
 export PATH="$BASE_DIR/.cargo/bin:$PATH"
+
+# Pin the toolchain so builds are reproducible on any machine
+# (GitHub runners ship a different default Rust version)
+rustup toolchain install 1.93.1
+rustup default 1.93.1
 
 echo "Ensuring required Rust targets..."
 rustup target add aarch64-unknown-linux-gnu
@@ -55,9 +65,15 @@ export PATH="$PATH:$ZIG_INSTALL_DIR"
 # === 4. Clone and build warp ===
 cd "$BASE_DIR"
 
-echo "Cloning warp..."
-git clone --depth 1 https://github.com/kirbylink/warp.git
-cd warp
+if [ -n "$WARP_SOURCE" ]; then
+  echo "Using existing warp checkout: $WARP_SOURCE"
+  WARP_DIR="$WARP_SOURCE"
+else
+  echo "Cloning warp..."
+  git clone --depth 1 https://github.com/kirbylink/warp.git
+  WARP_DIR="$BASE_DIR/warp"
+fi
+cd "$WARP_DIR"
 
 echo "Building warp..."
 make

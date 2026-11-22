@@ -1,0 +1,158 @@
+name: Test packed binaries
+
+# Builds the release binaries with build.sh (the exact same script and
+# toolchain as the manual release builds: Rust 1.93.1, cargo-zigbuild,
+# Zig 0.15.2) and then packs a small test app with the freshly built
+# packer on Linux, Windows and macOS. The resulting binary is run, the
+# extracted cache is verified byte-for-byte and a corrupted binary is
+# checked to be rejected.
+#
+# Uses GitHub-hosted runners, which are free for public repositories.
+
+on:
+  pull_request:
+    branches: [develop, master]
+  workflow_dispatch:
+
+jobs:
+  # Builds all 7 release packers (each with all 6 real runners embedded)
+  # exactly like the manual release process.
+  build-release:
+    name: Build release binaries (build.sh)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run build.sh on the current working tree
+        run: |
+          # BASE_DIR is a scratch directory (build.sh installs Rust/Zig
+          # there and would delete $BASE_DIR/warp), WARP_SOURCE points
+          # at the checked-out PR code so nothing is cloned.
+          ./build.sh "$RUNNER_TEMP/warp-ci" "$GITHUB_WORKSPACE"
+
+      - name: Show built bundle
+        run: ls -la target/bundle/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          path: target/bundle/
+
+  test:
+    name: Pack + run on ${{ matrix.os }}
+    needs: build-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            packer: linux-x64.warp-packer
+            arch: linux-x64
+            ext: ""
+          - os: windows-latest
+            packer: windows-x64.warp-packer.exe
+            arch: windows-x64
+            ext: ".exe"
+          - os: macos-latest
+            packer: macos-aarch64.warp-packer
+            arch: macos-aarch64
+            ext: ""
+          - os: macos-15-intel
+            packer: macos-x64.warp-packer
+            arch: macos-x64
+            ext: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-bundle
+          path: bundle
+
+      # Artifact downloads do not preserve the executable bit
+      - name: Make packer executable
+        if: runner.os != 'Windows'
+        run: chmod +x bundle/*
+
+      - name: Create test app (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p testapp/bin testapp/lib
+          printf '#!/bin/sh\necho "hello from test app"\necho "args: $@"\n' > testapp/bin/myapp
+          chmod +x testapp/bin/myapp
+          head -c 5242880 /dev/urandom > testapp/lib/big.bin
+
+      - name: Create test app (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force testapp/bin, testapp/lib | Out-Null
+          Set-Content -Path testapp/bin/myapp.bat -Value '@echo off`r`necho hello from test app`r`necho args: %*'
+          $bytes = New-Object byte[] 5242880
+          [System.Random]::new().NextBytes($bytes)
+          [IO.File]::WriteAllBytes("testapp/lib/big.bin", $bytes)
+
+      - name: Pack test app with release packer
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ./bundle/${{ matrix.packer }} pack --arch ${{ matrix.arch }} --input-dir testapp --exec bin/myapp.bat --output packed-app.exe
+          else
+            ./bundle/${{ matrix.packer }} pack --arch ${{ matrix.arch }} --input-dir testapp --exec bin/myapp --output packed-app
+          fi
+
+      - name: First run (extract + execute)
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ./packed-app.exe ci-arg-1
+          else
+            ./packed-app ci-arg-1
+          fi
+
+      - name: Verify extracted cache
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            CACHE="$LOCALAPPDATA/warp/packages/packed-app.exe/static"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            CACHE="$HOME/Library/Application Support/warp/packages/packed-app/static"
+          else
+            CACHE="$HOME/.local/share/warp/packages/packed-app/static"
+          fi
+          cmp testapp/lib/big.bin "$CACHE/lib/big.bin"
+          echo "cache matches source"
+
+      - name: Second run (warm start)
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ./packed-app.exe warm
+          else
+            ./packed-app warm
+          fi
+
+      - name: Corrupted binary must be rejected
+        shell: bash
+        run: |
+          # Only the new zstd-chunk layout (PR #9) carries the 44-byte
+          # footer with the WARP-PAYLOAD magic. The old tar.gz layout has
+          # no checksum at all, so corruption there is not reliably
+          # detected - skip the test in that case.
+          BINARY=packed-app
+          [ "$RUNNER_OS" = "Windows" ] && BINARY=packed-app.exe
+          if ! grep -qa WARP-PAYLOAD "$BINARY"; then
+            echo "Old payload layout (tar.gz) detected - skipping corruption test"
+            exit 0
+          fi
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cp packed-app.exe packed-app-corrupt.exe
+            powershell -NoProfile -Command '$b=[IO.File]::ReadAllBytes("packed-app-corrupt.exe"); $i=$b.Length/2; $b[$i]=$b[$i] -bxor 0xFF; [IO.File]::WriteAllBytes("packed-app-corrupt.exe",$b)'
+            ./packed-app-corrupt.exe should-fail && exit 1 || echo "corrupt binary rejected as expected"
+          else
+            cp packed-app packed-app-corrupt
+            python3 -c "
+          data = bytearray(open('packed-app-corrupt','rb').read())
+          data[len(data)//2] ^= 0xff
+          open('packed-app-corrupt','wb').write(data)"
+            ./packed-app-corrupt should-fail && exit 1 || echo "corrupt binary rejected as expected"
+          fi

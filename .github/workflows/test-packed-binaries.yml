@@ -1,0 +1,139 @@
+name: Test packed binaries
+
+# Packs a small test app with the freshly built warp-packer, runs the
+# resulting binary, verifies the extracted cache byte-for-byte and checks
+# that a corrupted binary is rejected.
+#
+# Uses GitHub-hosted runners, which are free for public repositories.
+
+on:
+  pull_request:
+    branches: [develop, master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Pack + run on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+          - os: macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      # The packer embeds ALL six runner binaries via include_bytes!
+      # (a compile-time macro), so every file must exist when the
+      # packer is compiled. This test only uses the native runner;
+      # the other five targets get placeholder files.
+      - name: Build warp-runner (native)
+        run: cargo build --release -p warp-runner
+
+      - name: Prepare runner binaries for packer embedding
+        shell: bash
+        run: |
+          for t in x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu \
+                   x86_64-apple-darwin aarch64-apple-darwin \
+                   x86_64-pc-windows-gnu aarch64-pc-windows-gnullvm; do
+            mkdir -p "target/$t/release"
+          done
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cp target/release/warp-runner.exe target/x86_64-pc-windows-gnu/release/
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            cp target/release/warp-runner target/aarch64-apple-darwin/release/
+          else
+            cp target/release/warp-runner target/x86_64-unknown-linux-gnu/release/
+          fi
+          for f in target/x86_64-unknown-linux-gnu/release/warp-runner \
+                   target/aarch64-unknown-linux-gnu/release/warp-runner \
+                   target/x86_64-apple-darwin/release/warp-runner \
+                   target/aarch64-apple-darwin/release/warp-runner \
+                   target/x86_64-pc-windows-gnu/release/warp-runner.exe \
+                   target/aarch64-pc-windows-gnullvm/release/warp-runner.exe; do
+            [ -f "$f" ] || echo placeholder > "$f"
+          done
+
+      - name: Build warp-packer (native)
+        run: cargo build --release -p warp-packer
+
+      - name: Create test app (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p testapp/bin testapp/lib
+          printf '#!/bin/sh\necho "hello from test app"\necho "args: $@"\n' > testapp/bin/myapp
+          chmod +x testapp/bin/myapp
+          head -c 5242880 /dev/urandom > testapp/lib/big.bin
+
+      - name: Create test app (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force testapp/bin, testapp/lib | Out-Null
+          Set-Content -Path testapp/bin/myapp.bat -Value '@echo off`r`necho hello from test app`r`necho args: %*'
+          $bytes = New-Object byte[] 5242880
+          [System.Random]::new().NextBytes($bytes)
+          [IO.File]::WriteAllBytes("testapp/lib/big.bin", $bytes)
+
+      - name: Pack test app
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ./target/release/warp-packer.exe pack --arch windows-x64 --input-dir testapp --exec bin/myapp.bat --output testapp.exe
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            ./target/release/warp-packer pack --arch macos-aarch64 --input-dir testapp --exec bin/myapp --output testapp
+          else
+            ./target/release/warp-packer pack --arch linux-x64 --input-dir testapp --exec bin/myapp --output testapp
+          fi
+
+      - name: First run (extract + execute)
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ./testapp.exe ci-arg-1
+          else
+            ./testapp ci-arg-1
+          fi
+
+      - name: Verify extracted cache
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            CACHE="$LOCALAPPDATA/warp/packages/testapp.exe/static"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            CACHE="$HOME/Library/Application Support/warp/packages/testapp/static"
+          else
+            CACHE="$HOME/.local/share/warp/packages/testapp/static"
+          fi
+          cmp testapp/lib/big.bin "$CACHE/lib/big.bin"
+          echo "cache matches source"
+
+      - name: Second run (warm start)
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ./testapp.exe warm
+          else
+            ./testapp warm
+          fi
+
+      - name: Corrupted binary must be rejected
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cp testapp.exe testapp-corrupt.exe
+            powershell -NoProfile -Command '$b=[IO.File]::ReadAllBytes("testapp-corrupt.exe"); $i=$b.Length/2; $b[$i]=$b[$i] -bxor 0xFF; [IO.File]::WriteAllBytes("testapp-corrupt.exe",$b)'
+            ./testapp-corrupt.exe should-fail && exit 1 || echo "corrupt binary rejected as expected"
+          else
+            cp testapp testapp-corrupt
+            python3 -c "
+          data = bytearray(open('testapp-corrupt','rb').read())
+          data[len(data)//2] ^= 0xff
+          open('testapp-corrupt','wb').write(data)"
+            ./testapp-corrupt should-fail && exit 1 || echo "corrupt binary rejected as expected"
+          fi

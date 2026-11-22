@@ -1,8 +1,11 @@
 name: Test packed binaries
 
-# Packs a small test app with the freshly built warp-packer, runs the
-# resulting binary, verifies the extracted cache byte-for-byte and checks
-# that a corrupted binary is rejected.
+# Builds the release binaries with build.sh (the exact same script and
+# toolchain as the manual release builds: Rust 1.93.1, cargo-zigbuild,
+# Zig 0.15.2) and then packs a small test app with the freshly built
+# packer on Linux, Windows and macOS. The resulting binary is run, the
+# extracted cache is verified byte-for-byte and a corrupted binary is
+# checked to be rejected.
 #
 # Uses GitHub-hosted runners, which are free for public repositories.
 
@@ -12,55 +15,54 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Builds all 7 release packers (each with all 6 real runners embedded)
+  # exactly like the manual release process.
+  build-release:
+    name: Build release binaries (build.sh)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run build.sh on the current working tree
+        run: |
+          # BASE_DIR is a scratch directory (build.sh installs Rust/Zig
+          # there and would delete $BASE_DIR/warp), WARP_SOURCE points
+          # at the checked-out PR code so nothing is cloned.
+          ./build.sh "$RUNNER_TEMP/warp-ci" "$GITHUB_WORKSPACE"
+
+      - name: Show built bundle
+        run: ls -la target/bundle/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          path: target/bundle/
+
   test:
     name: Pack + run on ${{ matrix.os }}
+    needs: build-release
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
+            packer: linux-x64.warp-packer
+            arch: linux-x64
+            ext: ""
           - os: windows-latest
+            packer: windows-x64.warp-packer.exe
+            arch: windows-x64
+            ext: ".exe"
           - os: macos-latest
+            packer: macos-aarch64.warp-packer
+            arch: macos-aarch64
+            ext: ""
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      # The packer embeds ALL six runner binaries via include_bytes!
-      # (a compile-time macro), so every file must exist when the
-      # packer is compiled. This test only uses the native runner;
-      # the other five targets get placeholder files.
-      - name: Build warp-runner (native)
-        run: cargo build --release -p warp-runner
-
-      - name: Prepare runner binaries for packer embedding
-        shell: bash
-        run: |
-          for t in x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu \
-                   x86_64-apple-darwin aarch64-apple-darwin \
-                   x86_64-pc-windows-gnu aarch64-pc-windows-gnullvm; do
-            mkdir -p "target/$t/release"
-          done
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            cp target/release/warp-runner.exe target/x86_64-pc-windows-gnu/release/
-          elif [ "$RUNNER_OS" = "macOS" ]; then
-            cp target/release/warp-runner target/aarch64-apple-darwin/release/
-          else
-            cp target/release/warp-runner target/x86_64-unknown-linux-gnu/release/
-          fi
-          for f in target/x86_64-unknown-linux-gnu/release/warp-runner \
-                   target/aarch64-unknown-linux-gnu/release/warp-runner \
-                   target/x86_64-apple-darwin/release/warp-runner \
-                   target/aarch64-apple-darwin/release/warp-runner \
-                   target/x86_64-pc-windows-gnu/release/warp-runner.exe \
-                   target/aarch64-pc-windows-gnullvm/release/warp-runner.exe; do
-            [ -f "$f" ] || echo placeholder > "$f"
-          done
-
-      - name: Build warp-packer (native)
-        run: cargo build --release -p warp-packer
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-bundle
+          path: bundle
 
       - name: Create test app (Unix)
         if: runner.os != 'Windows'
@@ -80,15 +82,13 @@ jobs:
           [System.Random]::new().NextBytes($bytes)
           [IO.File]::WriteAllBytes("testapp/lib/big.bin", $bytes)
 
-      - name: Pack test app
+      - name: Pack test app with release packer
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            ./target/release/warp-packer.exe pack --arch windows-x64 --input-dir testapp --exec bin/myapp.bat --output packed-app.exe
-          elif [ "$RUNNER_OS" = "macOS" ]; then
-            ./target/release/warp-packer pack --arch macos-aarch64 --input-dir testapp --exec bin/myapp --output packed-app
+            ./bundle/${{ matrix.packer }} pack --arch ${{ matrix.arch }} --input-dir testapp --exec bin/myapp.bat --output packed-app.exe
           else
-            ./target/release/warp-packer pack --arch linux-x64 --input-dir testapp --exec bin/myapp --output packed-app
+            ./bundle/${{ matrix.packer }} pack --arch ${{ matrix.arch }} --input-dir testapp --exec bin/myapp --output packed-app
           fi
 
       - name: First run (extract + execute)
@@ -128,7 +128,7 @@ jobs:
           # Only the new zstd-chunk layout (PR #9) carries the 44-byte
           # footer with the WARP-PAYLOAD magic. The old tar.gz layout has
           # no checksum at all, so corruption there is not reliably
-          # detected – skip the test in that case.
+          # detected - skip the test in that case.
           BINARY=packed-app
           [ "$RUNNER_OS" = "Windows" ] && BINARY=packed-app.exe
           if ! grep -qa WARP-PAYLOAD "$BINARY"; then

@@ -64,6 +64,11 @@ jobs:
           name: release-bundle
           path: bundle
 
+      # Artifact downloads do not preserve the executable bit
+      - name: Make packer executable
+        if: runner.os != 'Windows'
+        run: chmod +x bundle/*
+
       - name: Create test app (Unix)
         if: runner.os != 'Windows'
         run: |
